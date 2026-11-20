@@ -883,7 +883,7 @@ void ConstellationEditor::paint (juce::Graphics& g)
     g.setColour (Theme::text()); g.setFont (F (21.0f));
     g.drawText ("CONSTELLATION", 52, 8, 260, 26, juce::Justification::centredLeft);
     g.setColour (Theme::dim()); g.setFont (F (10.5f, false));
-    g.drawText (juce::String::fromUTF8 ("by Polaris Sound Lab  \xc2\xb7  v1.0.1"), 53, 32, 260, 14, juce::Justification::centredLeft);
+    g.drawText (juce::String::fromUTF8 ("by Polaris Sound Lab  \xc2\xb7  v1.0.2"), 53, 32, 260, 14, juce::Justification::centredLeft);
 
     // right panel
     auto panel = getLocalBounds().withTrimmedTop (56).removeFromRight (310).withTrimmedBottom (122);

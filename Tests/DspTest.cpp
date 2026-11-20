@@ -147,10 +147,15 @@ int main()
         std::printf ("        trial days left = %d, licensed = %d\n", L.daysLeft.load(), (int) L.licensed.load());
         check (! L.expired(), "fresh install is in the 30-day trial");
         shot (sky, "licence.png", [] (ConstellationEditor& e) { e.showLicence(); });
-        check (! ConstellationProcessor::activate ("tester@polaris.mx", "DEADBEEF-1234"), "a wrong key is rejected");
-        check (! ConstellationProcessor::activate ("other@polaris.mx", "41691637-53FD413C-05E78B14-A66B2F3E-0F335769-ADAA0B23-4886AEEB-67E3347D-A0CC4A04-9E963E3C-62DCC98A-561B9BBA-55F0F106-5A8B9F49-35BA3DB2-989E5AE8-2393BBD6-F42BD897-C13DBBF3-0A3F6596-1BFA782A-6ABF26E1-25A0640E-298F7082-59AC7C8E-32C199EB-01957089-63D52EC3-C964C966-2A6E6A02-A013C694-F7A287C4"), "a key for another e-mail is rejected");
-        check (ConstellationProcessor::activate ("  Tester@Polaris.MX ", "41691637-53FD413C-05E78B14-A66B2F3E-0F335769-ADAA0B23-4886AEEB-67E3347D-A0CC4A04-9E963E3C-62DCC98A-561B9BBA-55F0F106-5A8B9F49-35BA3DB2-989E5AE8-2393BBD6-F42BD897-C13DBBF3-0A3F6596-1BFA782A-6ABF26E1-25A0640E-298F7082-59AC7C8E-32C199EB-01957089-63D52EC3-C964C966-2A6E6A02-A013C694-F7A287C4"), "a valid key activates (case/space tolerant)");
-        check (L.licensed.load(), "licence flag set");
+        check (! ConstellationProcessor::activate ("someone@example.com", "DEADBEEF-1234"), "a wrong key is rejected");
+        const auto tk = juce::SystemStats::getEnvironmentVariable ("CST_TEST_KEY", {}), te = juce::SystemStats::getEnvironmentVariable ("CST_TEST_EMAIL", {});
+        if (tk.isNotEmpty())
+        {
+            check (! ConstellationProcessor::activate ("other@example.com", tk), "a key for another e-mail is rejected");
+            check (ConstellationProcessor::activate ("  " + te.toUpperCase() + " ", tk), "a valid key activates (case/space tolerant)");
+        }
+        else std::printf ("        (no CST_TEST_KEY: activation test skipped)\n");
+        if (tk.isNotEmpty()) check (L.licensed.load(), "licence flag set");
     }
 
     // surround recorder: stars + SKY in one process, timeline-locked, like Ableton exporting
