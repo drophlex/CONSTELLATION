@@ -1,6 +1,8 @@
 // CONSTELLATION — by Polaris Sound Lab (Mérida, Yucatán). Design: Dark Funk Durcal. GPL-3.0
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "LicenceKey.h"
+#include <juce_cryptography/juce_cryptography.h>
 
 using namespace cst;
 
@@ -17,6 +19,15 @@ void direction (float x, float y, float z, float wrap, float& az, float& el, flo
     az   = juce::jlimit (-180.0f, 180.0f, a * (1.333f - 0.333f * wrap));
     el   = y >= 0.0f ? y * 60.0f : y * 30.0f;
     dist = z * (1.0f - 0.6f * wrap);
+}
+void computeRevGains (const SpeakerLayout& lay, std::vector<float>& rg)
+{
+    const int nc = lay.numChannels;
+    rg.assign ((size_t) (2 * nc), 0.0f);
+    for (auto& sp : lay.ear) { const int ch = sp.channel; rg[(size_t) (ch * 2)] = sp.az < 0 ? 1.f : (sp.az == 0 ? .5f : 0.f); rg[(size_t) (ch * 2 + 1)] = sp.az > 0 ? 1.f : (sp.az == 0 ? .5f : 0.f); }
+    for (auto& sp : lay.top) { const int ch = sp.channel; rg[(size_t) (ch * 2)] = sp.az <= 0 ? .8f : 0.f; rg[(size_t) (ch * 2 + 1)] = sp.az >= 0 ? .8f : 0.f; }
+    float pl = 0, pr = 0; for (int c = 0; c < nc; ++c) { pl += rg[(size_t) (c * 2)] * rg[(size_t) (c * 2)]; pr += rg[(size_t) (c * 2 + 1)] * rg[(size_t) (c * 2 + 1)]; }
+    for (int c = 0; c < nc; ++c) { rg[(size_t) (c * 2)] /= std::sqrt (std::max (pl, 1e-6f)); rg[(size_t) (c * 2 + 1)] /= std::sqrt (std::max (pr, 1e-6f)); }
 }
 } // namespace
 
@@ -76,6 +87,8 @@ ConstellationProcessor::ConstellationProcessor()
 ConstellationProcessor::~ConstellationProcessor()
 {
     stopTimer();
+    if (recState.load() != recIdle) stopRecorder();
+    if (writerThread != nullptr) writerThread->stopThread (2000);
     Registry::get().release (slotIndex);
 }
 
@@ -116,6 +129,9 @@ void ConstellationProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
     directSm.setCurrentAndTargetValue (1.0f);
     sendSm.setCurrentAndTargetValue (0.0f);
     layoutChannels = 0;
+    recScratch.setSize (kRecMaxCh, maxBlock * 2);
+    for (auto& b : recBin) { b.prepare (sr); b.clear(); }
+    recLayoutFmt = -1;
     updateFilters (true);
 }
 
@@ -205,6 +221,12 @@ void ConstellationProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
         s.isSky.store (isSkyMode() ? 1 : 0);
     }
     publishParams();
+    if (licence().expired())
+    {
+        // trial over and no licence: the stars stay visible, audio passes through untouched
+        for (int c = getTotalNumInputChannels(); c < buffer.getNumChannels(); ++c) buffer.clear (c, 0, buffer.getNumSamples());
+        return;
+    }
     if (isSkyMode()) processSky (buffer); else processStar (buffer);
 }
 
@@ -229,6 +251,41 @@ void ConstellationProcessor::processSky (juce::AudioBuffer<float>& buffer)
         if (mono) { L[i] = m; if (nc > 1) R[i] = m; }
     }
     correlation.store (corrNum / std::sqrt (corrDen1 * corrDen2 + 1.0e-12f));
+
+    const int st = recState.load();
+    if (st == recWaiting || st == recRunning)
+    {
+        juce::int64 tpos = 0; bool playing = false;
+        const bool ok = readPlayhead (tpos, playing);
+        if (ok && playing && Registry::get().globals.recArmed.load() != 0 && recChannels > 2 && recScratch.getNumSamples() >= n)
+        {
+            recState.store (recRunning);
+            auto& bus = Registry::get().bus;
+            float* rp[kRecMaxCh] {};
+            for (int c = 0; c < recChannels; ++c) rp[c] = recScratch.getWritePointer (c);
+            for (int i = 0; i < n; ++i)
+            {
+                const int fr = SurroundBus::frame (tpos + i);
+                for (int c = 0; c < recChannels; ++c) rp[c][i] = bus.take (c, fr);
+            }
+            const juce::SpinLock::ScopedTryLockType tl (writerLock);
+            if (tl.isLocked() && bedWriter != nullptr && binWriter != nullptr)
+            {
+                const float* bed[kRecMaxCh] {};
+                for (int c = 0; c < recChannels - 2; ++c) bed[c] = rp[c];
+                const float* bi[2] = { rp[recChannels - 2], rp[recChannels - 1] };
+                auto push = [&] (juce::AudioFormatWriter::ThreadedWriter& w, const float* const* d)
+                {
+                    int guard = 0;
+                    while (! w.write (d, n) && isNonRealtime() && ++guard < 5000) juce::Thread::sleep (1); // offline export: wait for the disk
+                };
+                push (*bedWriter, bed); push (*binWriter, bi);
+            }
+            recSamples.fetch_add (n);
+        }
+        else if (st == recRunning && ! playing)
+            recState.store (recDone);
+    }
     masterL.store (std::max (gainToDb (pkL), masterL.load() - 1.5f));
     masterR.store (std::max (gainToDb (pkR), masterR.load() - 1.5f));
     if (slotIndex >= 0)
@@ -254,11 +311,7 @@ void ConstellationProcessor::processStar (juce::AudioBuffer<float>& buffer)
     {
         layout.build (outSet); layoutChannels = outSet.size();
         outGains.assign ((size_t) (2 * layoutChannels), 0.0f); outGainsPrev = outGains;
-        revGains.assign ((size_t) (2 * layoutChannels), 0.0f);
-        for (auto& sp : layout.ear) { const int ch = sp.channel; revGains[(size_t) (ch * 2)] = sp.az < 0 ? 1.f : (sp.az == 0 ? .5f : 0.f); revGains[(size_t) (ch * 2 + 1)] = sp.az > 0 ? 1.f : (sp.az == 0 ? .5f : 0.f); }
-        for (auto& sp : layout.top) { const int ch = sp.channel; revGains[(size_t) (ch * 2)] = sp.az <= 0 ? .8f : 0.f; revGains[(size_t) (ch * 2 + 1)] = sp.az >= 0 ? .8f : 0.f; }
-        float pl = 0, pr = 0; for (int c = 0; c < layoutChannels; ++c) { pl += revGains[(size_t) (c * 2)] * revGains[(size_t) (c * 2)]; pr += revGains[(size_t) (c * 2 + 1)] * revGains[(size_t) (c * 2 + 1)]; }
-        for (int c = 0; c < layoutChannels; ++c) { revGains[(size_t) (c * 2)] /= std::sqrt (std::max (pl, 1e-6f)); revGains[(size_t) (c * 2 + 1)] /= std::sqrt (std::max (pr, 1e-6f)); }
+        computeRevGains (layout, revGains);
     }
     const int room = reg.globals.room.load();
     if (room != lastRoom) { reverb.setRoom (room); lastRoom = room; }
@@ -321,6 +374,35 @@ void ConstellationProcessor::processStar (juce::AudioBuffer<float>& buffer)
         for (int c = 0; c < layoutChannels && c < 32; ++c) outGains[(size_t) (c * 2 + 1)] = tmp[c];
     }
 
+    // ── surround recorder: render the chosen bed + a binaural pair into the shared bus ──
+    juce::int64 tpos = 0; bool playing = false;
+    const bool recOn = reg.globals.recArmed.load() != 0 && readPlayhead (tpos, playing) && playing && ! licence().expired();
+    int recN = 0;
+    float* rp[kRecMaxCh] {};
+    if (recOn)
+    {
+        const int fmt = juce::jlimit (0, 2, reg.globals.recFormat.load());
+        if (fmt != recLayoutFmt)
+        {
+            recLayout.build (recFormatSet (fmt)); recLayoutFmt = fmt;
+            recG.assign ((size_t) (2 * recLayout.numChannels), 0.0f); recGPrev = recG;
+            computeRevGains (recLayout, recRev);
+            for (auto& b : recBin) b.clear();
+        }
+        recN = recLayout.numChannels;
+        recGPrev = recG;
+        const float spread = 0.08f + 0.35f * dist + 0.1f * juce::jmax (0.0f, p[pWidth]->load() - 1.0f);
+        const float sp = 25.0f + 10.0f * juce::jmin (1.0f, p[pWidth]->load());
+        float tmp[32] {};
+        recLayout.compute (az - sp, el, spread, tmp);
+        for (int c = 0; c < recN; ++c) recG[(size_t) (c * 2)] = tmp[c];
+        recLayout.compute (az + sp, el, spread, tmp);
+        for (int c = 0; c < recN; ++c) recG[(size_t) (c * 2 + 1)] = tmp[c];
+        const float bsp = 30.0f * (1.0f - 0.5f * std::abs (x));
+        recBin[0].setDirection (az - bsp, el); recBin[1].setDirection (az + bsp, el);
+        for (int c = 0; c < recN + 2; ++c) rp[c] = recScratch.getWritePointer (c);
+    }
+
     const float envA = std::exp (-1.0f / (0.04f * (float) sr));
     bool cutActive[kBands]; for (int b = 0; b < kBands; ++b) cutActive[b] = std::abs (cutApplied[b]) > 0.05f;
     float pk = 0.0f;
@@ -350,6 +432,21 @@ void ConstellationProcessor::processStar (juce::AudioBuffer<float>& buffer)
         float rvL, rvR; reverb.process ((l + r) * 0.5f * sendSm.getNextValue(), closeness, rvL, rvR);
         l *= dg; r *= dg;
 
+        if (recOn)
+        {
+            const float t = (float) i * invN;
+            for (int c = 0; c < recN; ++c)
+            {
+                const size_t a = (size_t) (c * 2);
+                const float ga = recGPrev[a] + t * (recG[a] - recGPrev[a]);
+                const float gb = recGPrev[a + 1] + t * (recG[a + 1] - recGPrev[a + 1]);
+                rp[c][i] = ga * l + gb * r + recRev[a] * rvL + recRev[a + 1] * rvR;
+            }
+            float bl = 0, br = 0;
+            recBin[0].process (l, bl, br); recBin[1].process (r, bl, br);
+            rp[recN][i] = bl * 0.85f + rvL; rp[recN + 1][i] = br * 0.85f + rvR;
+        }
+
         if (speakers)
         {
             const float t = (float) i * invN;
@@ -376,6 +473,13 @@ void ConstellationProcessor::processStar (juce::AudioBuffer<float>& buffer)
         pk = std::max (pk, std::abs (out[0][i]));
         if (nOut > 1) pk = std::max (pk, std::abs (out[1][i]));
     }
+
+    if (recOn)
+        for (int i = 0; i < n; ++i)
+        {
+            const int fr = SurroundBus::frame (tpos + i);
+            for (int c = 0; c < recN + 2; ++c) reg.bus.add (c, fr, rp[c][i]);
+        }
 
     if (slotIndex >= 0)
     {
@@ -565,6 +669,8 @@ void ConstellationProcessor::timerCallback()
     s.uuid = uuid;
     s.colour = trackColour != 0 ? trackColour : roleColour[effectiveRole (slotIndex)];
 
+    if (recState.load() == recDone) finishRecorder();
+
     if (isSkyMode())
     {
         const float m = morphParam->load();
@@ -622,6 +728,138 @@ void ConstellationProcessor::setStateInformation (const void* data, int size)
     lastMorph = morphParam->load();
     if (slotIndex >= 0) { auto& s = Registry::get().slot (slotIndex); s.uuid = uuid; s.isSky.store (isSkyMode() ? 1 : 0); }
     publishParams();
+}
+
+// ───────────────────────────── surround recorder ─────────────────────────────
+bool ConstellationProcessor::readPlayhead (juce::int64& pos, bool& playing)
+{
+    playing = false; pos = 0;
+    if (auto* ph = getPlayHead())
+        if (auto info = ph->getPosition())
+        {
+            playing = info->getIsPlaying();
+            if (auto t = info->getTimeInSamples()) { pos = *t; return true; }
+        }
+    return false;
+}
+
+bool ConstellationProcessor::armRecorder (int format)
+{
+    if (! isSkyMode() || licence().expired()) return false;
+    if (recState.load() != recIdle) stopRecorder();
+    format = juce::jlimit (0, 2, format);
+    auto dir = juce::File::getSpecialLocation (juce::File::userMusicDirectory).getChildFile ("Constellation Surround");
+    dir.createDirectory();
+    const auto base = "Constellation_" + juce::Time::getCurrentTime().formatted ("%Y-%m-%d_%H-%M-%S");
+    const auto set = recFormatSet (format);
+    lastRecording    = dir.getChildFile (base + "_" + recFormatName (format) + ".wav");
+    lastRecordingBin = dir.getChildFile (base + "_Binaural.wav");
+    if (writerThread == nullptr) { writerThread = std::make_unique<juce::TimeSliceThread> ("Constellation recorder"); writerThread->startThread(); }
+    auto make = [this] (const juce::File& f, const juce::AudioChannelSet& cs) -> std::unique_ptr<juce::AudioFormatWriter::ThreadedWriter>
+    {
+        std::unique_ptr<juce::OutputStream> os (f.createOutputStream());
+        if (os == nullptr) return {};
+        juce::WavAudioFormat wav;
+        auto* w = wav.createWriterFor (os.get(), sr, cs, 24, {}, 0);
+        if (w == nullptr) return {};
+        os.release();
+        return std::make_unique<juce::AudioFormatWriter::ThreadedWriter> (w, *writerThread, 1 << 18);
+    };
+    auto bed = make (lastRecording, set);
+    auto bi2 = make (lastRecordingBin, juce::AudioChannelSet::stereo());
+    if (bed == nullptr || bi2 == nullptr) { lastRecording.deleteFile(); lastRecordingBin.deleteFile(); return false; }
+    {
+        const juce::SpinLock::ScopedLockType sl (writerLock);
+        bedWriter = std::move (bed); binWriter = std::move (bi2);
+        recChannels = set.size() + 2;
+    }
+    recSamples.store (0);
+    auto& reg = Registry::get();
+    reg.bus.clear();
+    reg.globals.recFormat.store (format);
+    reg.globals.recArmed.store (1);
+    recState.store (recWaiting);
+    return true;
+}
+
+void ConstellationProcessor::finishRecorder()
+{
+    Registry::get().globals.recArmed.store (0);
+    {
+        const juce::SpinLock::ScopedLockType sl (writerLock);
+        bedWriter.reset(); binWriter.reset();   // flushes and closes the files
+    }
+    if (recSamples.load() == 0) { lastRecording.deleteFile(); lastRecordingBin.deleteFile(); }
+    recState.store (recIdle);
+}
+
+void ConstellationProcessor::stopRecorder() { finishRecorder(); }
+
+// ───────────────────────────── licence / trial ─────────────────────────────
+// 30-day full trial, then a licence key (RSA signature of the buyer's e-mail, verified offline).
+namespace
+{
+const char* kPubN = CST_LICENCE_N;
+juce::File licenceFile()
+{
+    return juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory)
+             .getChildFile ("Polaris Sound Lab").getChildFile ("Constellation").getChildFile ("licence.xml");
+}
+juce::String normEmail (const juce::String& e) { return e.trim().toLowerCase(); }
+bool verifyKey (const juce::String& email, const juce::String& key)
+{
+    const auto hex = key.retainCharacters ("0123456789abcdefABCDEF");
+    if (hex.length() < 64 || normEmail (email).isEmpty()) return false;
+    juce::BigInteger n, sgn, e (65537);
+    n.parseString (kPubN, 16); sgn.parseString (hex, 16);
+    if (sgn >= n) return false;
+    const auto msg = juce::String ("CONSTELLATION|1|") + normEmail (email);
+    juce::BigInteger m; m.parseString (juce::SHA256 (msg.toUTF8()).toHexString(), 16);
+    sgn.exponentModulo (e, n);
+    return sgn == m;
+}
+} // namespace
+
+ConstellationProcessor::Licence& ConstellationProcessor::licence()
+{
+    static Licence L = []
+    {
+        Licence l;
+        auto f = licenceFile();
+        std::unique_ptr<juce::XmlElement> xml (juce::XmlDocument::parse (f));
+        const juce::int64 now = juce::Time::currentTimeMillis();
+        juce::int64 first = now;
+        if (xml != nullptr && xml->hasAttribute ("t"))
+            first = xml->getStringAttribute ("t").getHexValue64() ^ (juce::int64) 0x5ca1ab1e0ddba11LL;
+        else
+        {
+            f.getParentDirectory().createDirectory();
+            juce::XmlElement x ("licence");
+            x.setAttribute ("t", juce::String::toHexString (now ^ (juce::int64) 0x5ca1ab1e0ddba11LL));
+            x.writeTo (f);
+        }
+        if (first > now) first = now;
+        const double days = (double) (now - first) / 86400000.0;
+        l.daysLeft = juce::jmax (0, 30 - (int) std::floor (days));
+        if (xml != nullptr && verifyKey (xml->getStringAttribute ("email"), xml->getStringAttribute ("key")))
+        { l.licensed = true; l.owner = normEmail (xml->getStringAttribute ("email")); }
+        return l;
+    }();
+    return L;
+}
+
+bool ConstellationProcessor::activate (const juce::String& email, const juce::String& key)
+{
+    if (! verifyKey (email, key)) return false;
+    auto f = licenceFile();
+    std::unique_ptr<juce::XmlElement> xml (juce::XmlDocument::parse (f));
+    if (xml == nullptr) xml = std::make_unique<juce::XmlElement> ("licence");
+    xml->setAttribute ("email", normEmail (email));
+    xml->setAttribute ("key", key.retainCharacters ("0123456789abcdefABCDEF"));
+    f.getParentDirectory().createDirectory();
+    xml->writeTo (f);
+    auto& l = licence(); l.licensed = true; l.owner = normEmail (email);
+    return true;
 }
 
 juce::AudioProcessorEditor* ConstellationProcessor::createEditor() { return new ConstellationEditor (*this); }

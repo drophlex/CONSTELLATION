@@ -37,6 +37,7 @@ public:
     explicit SkyView (ConstellationProcessor&);
     void paint (juce::Graphics&) override;
     void mouseDown (const juce::MouseEvent&) override;
+    void showLicence();
     void mouseDrag (const juce::MouseEvent&) override;
     void mouseUp (const juce::MouseEvent&) override;
     void mouseDoubleClick (const juce::MouseEvent&) override;
@@ -97,6 +98,8 @@ public:
     void paint (juce::Graphics&) override;
     void paintOverChildren (juce::Graphics&) override;
     void resized() override;
+    void mouseDown (const juce::MouseEvent&) override;
+    void showLicence();
 
 private:
     void timerCallback() override;
@@ -122,6 +125,11 @@ private:
     struct K { juce::Slider s; juce::Label l; int param; };
     std::array<K, 9> knobs;
     std::unique_ptr<juce::Component> help;
+    std::unique_ptr<juce::Component> licPanel;
+    juce::TextButton licBtn, recBtn;
+    juce::ComboBox recFormat;
+    juce::Label recLabel, exportLabel;
+    void refreshRec();
     bool updating = false, showHelp = false, storeArmed = false;
     int selected = -1, lastLang = -1;
 

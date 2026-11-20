@@ -44,7 +44,7 @@ target_compile_definitions(Constellation PUBLIC
   JUCE_DISPLAY_SPLASH_SCREEN=0)
 
 target_link_libraries(Constellation
-  PRIVATE juce::juce_audio_utils juce::juce_dsp
+  PRIVATE juce::juce_audio_utils juce::juce_dsp juce::juce_cryptography
   PUBLIC juce::juce_recommended_config_flags juce::juce_recommended_lto_flags juce::juce_recommended_warning_flags)
 
 option(CST_BUILD_TESTS "Build offline DSP test" OFF)
@@ -53,5 +53,5 @@ if(CST_BUILD_TESTS)
   target_sources(CstTest PRIVATE Tests/DspTest.cpp Source/PluginProcessor.cpp Source/PluginEditor.cpp)
   target_include_directories(CstTest PRIVATE Source)
   target_compile_definitions(CstTest PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 CST_TEST=1 JUCE_MODAL_LOOPS_PERMITTED=1)
-  target_link_libraries(CstTest PRIVATE juce::juce_audio_utils juce::juce_dsp juce::juce_recommended_config_flags)
+  target_link_libraries(CstTest PRIVATE juce::juce_audio_utils juce::juce_dsp juce::juce_cryptography juce::juce_recommended_config_flags)
 endif()

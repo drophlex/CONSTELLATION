@@ -10,9 +10,29 @@ static void setP (ConstellationProcessor& p, const char* id, float v)
     auto* prm = p.apvts.getParameter (id); prm->setValueNotifyingHost (prm->convertTo0to1 (v));
 }
 
+struct TestHead : juce::AudioPlayHead
+{
+    juce::int64 pos = 0; bool playing = false;
+    juce::Optional<PositionInfo> getPosition() const override { PositionInfo i; i.setIsPlaying (playing); i.setTimeInSamples (pos); return i; }
+};
+
 static float rms (const juce::AudioBuffer<float>& b, int ch)
 {
     return b.getRMSLevel (ch, 0, b.getNumSamples());
+}
+
+static void shot (juce::AudioProcessor& p, const char* file, std::function<void (ConstellationEditor&)> prep = {})
+{
+    std::unique_ptr<juce::AudioProcessorEditor> ed (p.createEditor());
+    ed->setSize (1200, 740);
+    auto* ce = dynamic_cast<ConstellationEditor*> (ed.get());
+    for (int k = 0; k < 6; ++k) juce::MessageManager::getInstance()->runDispatchLoopUntil (40);
+    if (prep && ce) prep (*ce);
+    for (int k = 0; k < 4; ++k) juce::MessageManager::getInstance()->runDispatchLoopUntil (40);
+    juce::Image img (juce::Image::ARGB, 1200, 740, true);
+    for (int k = 0; k < 30; ++k) { juce::Graphics g (img); ed->paintEntireComponent (g, true); }
+    juce::File f (juce::String ("/home/claude/constellation/build/") + file); f.deleteFile();
+    juce::FileOutputStream os (f); juce::PNGImageFormat().writeImageToStream (img, os);
 }
 
 int main()
@@ -120,6 +140,57 @@ int main()
     // style
     sky.applyStyle (sClub);
     check (std::abs (kick.apvts.getRawParameterValue ("x")->load()) < 0.01f, "Auto-Mix centers the kick");
+
+    // licence: trial counting + offline key check
+    {
+        auto& L = ConstellationProcessor::licence();
+        std::printf ("        trial days left = %d, licensed = %d\n", L.daysLeft.load(), (int) L.licensed.load());
+        check (! L.expired(), "fresh install is in the 30-day trial");
+        shot (sky, "licence.png", [] (ConstellationEditor& e) { e.showLicence(); });
+        check (! ConstellationProcessor::activate ("tester@polaris.mx", "DEADBEEF-1234"), "a wrong key is rejected");
+        check (! ConstellationProcessor::activate ("other@polaris.mx", "41691637-53FD413C-05E78B14-A66B2F3E-0F335769-ADAA0B23-4886AEEB-67E3347D-A0CC4A04-9E963E3C-62DCC98A-561B9BBA-55F0F106-5A8B9F49-35BA3DB2-989E5AE8-2393BBD6-F42BD897-C13DBBF3-0A3F6596-1BFA782A-6ABF26E1-25A0640E-298F7082-59AC7C8E-32C199EB-01957089-63D52EC3-C964C966-2A6E6A02-A013C694-F7A287C4"), "a key for another e-mail is rejected");
+        check (ConstellationProcessor::activate ("  Tester@Polaris.MX ", "41691637-53FD413C-05E78B14-A66B2F3E-0F335769-ADAA0B23-4886AEEB-67E3347D-A0CC4A04-9E963E3C-62DCC98A-561B9BBA-55F0F106-5A8B9F49-35BA3DB2-989E5AE8-2393BBD6-F42BD897-C13DBBF3-0A3F6596-1BFA782A-6ABF26E1-25A0640E-298F7082-59AC7C8E-32C199EB-01957089-63D52EC3-C964C966-2A6E6A02-A013C694-F7A287C4"), "a valid key activates (case/space tolerant)");
+        check (L.licensed.load(), "licence flag set");
+    }
+
+    // surround recorder: stars + SKY in one process, timeline-locked, like Ableton exporting
+    {
+        TestHead head;
+        for (auto* p : { &kick, &bass, &pad, &sky }) p->setPlayHead (&head);
+        setP (pad, "y", 1.0f); setP (pad, "x", 0.0f); setP (pad, "z", 0.1f); setP (pad, "space", 0.0f); setP (pad, "mute", 0.0f);
+        setP (kick, "mute", 1.0f); setP (bass, "mute", 1.0f);
+        check (sky.armRecorder (2), "SKY arms the 7.1.4 recorder");
+        shot (sky, "sky_rec.png");
+        head.playing = true; head.pos = 48000;
+        const int blocks = 200;
+        for (int blk = 0; blk < blocks; ++blk)
+        {
+            for (int i = 0; i < bs; ++i) { const float v = 0.3f * (rnd.nextFloat() * 2 - 1); bp.setSample (0, i, v); bp.setSample (1, i, v); bk.setSample (0, i, 0); bk.setSample (1, i, 0); bb.setSample (0, i, 0); bb.setSample (1, i, 0); }
+            kick.processBlock (bk, midi); bass.processBlock (bb, midi); pad.processBlock (bp, midi);
+            bm.makeCopyOf (bp); sky.processBlock (bm, midi);
+            head.pos += bs;
+        }
+        check (sky.getRecState() == ConstellationProcessor::recRunning, "recorder runs while the transport plays");
+        head.playing = false; sky.processBlock (bm, midi);
+        for (int k = 0; k < 10; ++k) juce::MessageManager::getInstance()->runDispatchLoopUntil (40);
+        check (sky.getRecState() == ConstellationProcessor::recIdle && sky.lastRecording.existsAsFile(), "file finalised when the transport stops");
+        juce::WavAudioFormat wav;
+        std::unique_ptr<juce::AudioFormatReader> r (wav.createReaderFor (sky.lastRecording.createInputStream().release(), true));
+        std::unique_ptr<juce::AudioFormatReader> rb (wav.createReaderFor (sky.lastRecordingBin.createInputStream().release(), true));
+        check (r != nullptr && r->numChannels == 12 && r->lengthInSamples == (juce::int64) blocks * bs, "7.1.4 WAV: 12 channels, sample-exact length");
+        check (rb != nullptr && rb->numChannels == 2, "binaural WAV written");
+        if (r != nullptr)
+        {
+            juce::AudioBuffer<float> wb (12, (int) r->lengthInSamples); r->read (&wb, 0, wb.getNumSamples(), 0, true, true);
+            float top = 0, ear = 0;
+            for (int c = 0; c < 12; ++c) (c >= 8 ? top : ear) += wb.getRMSLevel (c, 0, wb.getNumSamples());
+            std::printf ("        7.1.4 file: top=%.4f ear=%.4f  layout=%s  file=%s\n", top, ear, r->getChannelLayout().getDescription().toRawUTF8(), sky.lastRecording.getFileName().toRawUTF8());
+            check (top > ear && top > 0.01f, "elevated star lands in the height channels of the file");
+        }
+        sky.lastRecording.copyFileTo (juce::File ("/home/claude/constellation/build/test_7.1.4.wav"));
+        for (auto* p : { &kick, &bass, &pad, &sky }) p->setPlayHead (nullptr);
+        setP (kick, "mute", 0.0f); setP (bass, "mute", 0.0f);
+    }
 
     // editor smoke test
     {

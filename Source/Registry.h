@@ -6,6 +6,8 @@
 #include <juce_core/juce_core.h>
 #include <atomic>
 #include <array>
+#include <vector>
+#include <juce_audio_basics/juce_audio_basics.h>
 
 namespace cst
 {
@@ -80,7 +82,42 @@ struct Globals
     std::atomic<int>   lang { 0 };        // 0 EN, 1 ES
     std::atomic<int>   monoCheck { 0 };
     std::atomic<int>   version { 0 };     // bumps when a UI changes globals
+    std::atomic<int>   recArmed { 0 };    // SKY surround recorder armed: stars render the surround bed into the bus
+    std::atomic<int>   recFormat { 2 };   // 0 = 5.1, 1 = 7.1, 2 = 7.1.4
 };
+
+// Surround export bus. Ableton tracks are stereo only, so each star also renders the chosen
+// speaker bed (+ a binaural pair) here, indexed by timeline sample. The SKY on the Master runs
+// after every track in the same audio cycle, reads the same positions, clears them and writes a WAV.
+constexpr int kRecMaxCh = 14;              // up to 12 bed channels + 2 binaural
+constexpr int kBusFrames = 1 << 16;
+struct SurroundBus
+{
+    std::vector<std::atomic<float>> data;  // [ch * kBusFrames + frame]
+    SurroundBus() : data ((size_t) (kRecMaxCh * kBusFrames)) { clear(); }
+    void clear() { for (auto& d : data) d.store (0.0f, std::memory_order_relaxed); }
+    static int frame (juce::int64 pos) noexcept { return (int) (((pos % kBusFrames) + kBusFrames) % kBusFrames); }
+    inline void add (int ch, int fr, float v) noexcept
+    {
+        if (v == 0.0f) return;
+        auto& a = data[(size_t) (ch * kBusFrames + fr)];
+        float old = a.load (std::memory_order_relaxed);
+        while (! a.compare_exchange_weak (old, old + v, std::memory_order_relaxed)) {}
+    }
+    inline float take (int ch, int fr) noexcept { return data[(size_t) (ch * kBusFrames + fr)].exchange (0.0f, std::memory_order_relaxed); }
+};
+
+inline const char* recFormatName (int f) { return f == 0 ? "5.1" : (f == 1 ? "7.1" : "7.1.4"); }
+// WAV-canonical channel order (WAVE_FORMAT_EXTENSIBLE mask): L R C LFE Lb Rb (Ls Rs) (TFL TFR TBL TBR)
+inline juce::AudioChannelSet recFormatSet (int f)
+{
+    using CS = juce::AudioChannelSet;
+    if (f == 0) return CS::create5point1();
+    juce::Array<CS::ChannelType> t { CS::left, CS::right, CS::centre, CS::LFE, CS::leftSurround, CS::rightSurround,
+                                     CS::leftSurroundSide, CS::rightSurroundSide };
+    if (f == 2) t.addArray (juce::Array<CS::ChannelType> { CS::topFrontLeft, CS::topFrontRight, CS::topRearLeft, CS::topRearRight });
+    return CS::channelSetWithChannels (t);
+}
 
 class Registry
 {
@@ -116,6 +153,7 @@ public:
 
     StarSlot& slot (int i) noexcept { return slots[(size_t) i]; }
     Globals globals;
+    SurroundBus bus;
 
 private:
     Registry()

@@ -254,8 +254,9 @@ struct SpeakerLayout
                 case CS::left:             az = -30;  break;
                 case CS::right:            az =  30;  break;
                 case CS::centre:           az =   0;  break;
-                case CS::leftSurround:     az = set.size() >= 8 ? -90 : -110; break;
-                case CS::rightSurround:    az = set.size() >= 8 ?  90 :  110; break;
+                // JUCE 7.1 uses Ls/Rs as sides + Lrs/Rrs as rears; WAV-style 7.1 uses Ls/Rs as rears + Lss/Rss as sides
+                case CS::leftSurround:     az = set.getChannelIndexForType (CS::leftSurroundRear) >= 0 ? -90.f : (set.getChannelIndexForType (CS::leftSurroundSide) >= 0 ? -150.f : -110.f); break;
+                case CS::rightSurround:    az = set.getChannelIndexForType (CS::rightSurroundRear) >= 0 ? 90.f : (set.getChannelIndexForType (CS::rightSurroundSide) >= 0 ? 150.f : 110.f); break;
                 case CS::leftSurroundSide: az = -90;  break;
                 case CS::rightSurroundSide:az =  90;  break;
                 case CS::leftSurroundRear: az = -150; break;

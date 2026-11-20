@@ -3,7 +3,7 @@
 <h1 align="center">✦ CONSTELLATION ✦</h1>
 <p align="center"><b>Mix by moving stars</b><br>
 3D visual mixer · 3D-aware spectral unmasking · binaural &amp; surround up to 7.1.4<br>
-<i>Free · open source · made for Ableton Live · works in any DAW</i></p>
+<i>30-day full trial · US$39 licence · made for Ableton Live · works in any DAW</i></p>
 
 <p align="center">
 <a href="https://drophlex.github.io/CONSTELLATION/"><img src="https://img.shields.io/badge/TRY%20IT%20NOW-IN%20THE%20BROWSER-ffd166?style=for-the-badge" alt="Try it now"></a>
@@ -28,6 +28,7 @@ Everything comes **in English**; press **ES** (top right of the plugin and the w
 | ⚡ **No routing at all** | Insert it on your tracks: they appear instantly, with **Ableton's track names and colours**. Any window can mix every track. No sends, no returns, no sidechains. |
 | ◎ **3D-aware Unmask** | Lower-priority stars dip **only** the bands where a higher-priority star is playing — and **less when they are far apart in space**. Red filaments show every clash. |
 | ✧ **Auto-Mix in one click** | Reads your track names (*Kick, Bajo, Lead Vox, Pad…*, English or Spanish) and lays out a full mix: Club, Funk, Hip-Hop, Ambient, Live Band, Wide Pop, Immersive 360°. **Untangle** fixes what still clashes. |
+| ⏺ **Surround export from Ableton** | Live's tracks are stereo — CONSTELLATION isn't. Arm **REC** on the SKY, export as usual and get a real **5.1 / 7.1 / 7.1.4 WAV** plus a binaural version, sample-locked to your song. |
 | 🎧 **Surround everywhere** | **3D Phones** = binaural surround on any headphones (works inside Ableton). Real **Quad · 5.1 · 7.1 · 5.1.2 · 5.1.4 · 7.1.2 · 7.1.4** in DAWs with surround buses. **360° Wrap** puts the listener inside the constellation. |
 | ⛰ **One shared room** | Dry Booth, Studio, Club, Plate, Concert Hall, **Cenote**, Cathedral, Nebula — every star in the same space, so depth glues the mix. |
 | ⇢ **Scenes + Morph** | Store 4 complete mixes and **automate Morph** in Live to fly the whole mix from verse to chorus. |
@@ -68,11 +69,11 @@ Everything comes **in English**; press **ES** (top right of the plugin and the w
 
 ## ❓ FAQ
 
-<details><summary><b>Is it free?</b></summary>
-Yes, all of it: plugin, web and manuals. Complete, free and open source (GPL-3.0). No paid version, no account.
+<details><summary><b>How much is it?</b></summary>
+The plugin is <b>complete for 30 days</b>. Then one licence, <b>US$39 once</b>, keeps it working forever: one person, all your computers, Mac and Windows, VST3 and AU, every 1.x update. Buy it from the gold <b>Trial</b> button inside the plugin (PayPal); the key arrives by e-mail. The web version is a free demo. The source code stays public (GPL-3.0).
 </details>
 <details><summary><b>Surround in Ableton Live?</b></summary>
-Live's tracks are stereo only, so inside Live use <b>3D Phones</b> (binaural surround on headphones). For real 5.1 / 7.1 / 7.1.4 speakers use a DAW with surround buses (Logic, Reaper, Cubase/Nuendo, Studio One…): Constellation detects the layout and pans every star across the speakers, height speakers included.
+Yes. Mix on headphones with <b>3D Phones</b>; then on the SKY (Master) choose 5.1 / 7.1 / 7.1.4, press <b>REC</b> and export as usual: you get a multichannel WAV (Music › Constellation Surround) plus a binaural WAV. In DAWs with surround buses (Logic, Reaper, Cubase/Nuendo…) Constellation also plays live on real speakers.
 </details>
 <details><summary><b>The stars of my other tracks don't appear.</b></summary>
 Use the same format on every track (all VST3 or all AU). In Ableton use the VST3: Live sends it the track name and colour.
@@ -97,7 +98,9 @@ hacia el fondo = **profundidad** (nivel, aire, sala y pre-delay, como un escenar
 **Auto-Mezcla** → *Funk / Disco* → **Aplicar** → **Desenredar** → arrastra las estrellas. **Desenmascarar** abre espacio solo en las bandas que chocan,
 **3D audífonos** = surround binaural, **Envolvente 360°** te mete en la constelación, **Escenas + Morph** vuelan la mezcla entre estrofa y coro.
 
-Todo es **gratis y de código abierto**.
+**Exportar surround:** en el CIELO (Master) elige 5.1 / 7.1 / 7.1.4, presiona **REC** y exporta como siempre: sale un WAV multicanal más uno binaural.
+
+**Precio:** el plugin viene **completo 30 días**; después una licencia de **US$39** (un solo pago, todas tus computadoras, Mac y Windows). Se compra desde el botón dorado **Prueba** dentro del plugin (PayPal) y la llave llega por correo. La versión web es una demo gratis.
 
 ---
 
@@ -124,6 +127,7 @@ Design by <b>Dark Funk Durcal</b> · Created at <b>POLARIS SOUND LAB</b> · Mér
 | `web/index.html` · `docs/index.html` | The web version (GitHub Pages serves `docs/`) |
 | `manual/` | Illustrated manuals EN · ES · EN+ES (`tools/manual_text.py` + `tools/build_manual.py`) |
 | `installer/` | One-click installers for macOS and Windows |
+| `Source/LicenceKey.h` | Public half of the licence key (verification only) |
 | `.github/workflows/build.yml` | Builds macOS (universal VST3 + AU) and Windows (VST3) and attaches them to every `v*` release |
 
 ## Build

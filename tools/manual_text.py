@@ -4,7 +4,7 @@ import json, pathlib
 
 EN = {
 "tag": "Mix by moving stars.",
-"sub": "3D visual mixer · 3D-aware spectral unmasking · binaural & surround up to 7.1.4<br>VST3 · AU · Web — free and open source — made for Ableton Live, works in any DAW",
+"sub": "3D visual mixer · 3D-aware spectral unmasking · binaural & surround up to 7.1.4<br>VST3 · AU · Web — 30-day full trial — made for Ableton Live, works in any DAW",
 "manual": "User manual", "footer": "User manual",
 "sections": [
 {"title": "What is CONSTELLATION?", "html": """
@@ -26,7 +26,7 @@ show that they are fighting for the same frequencies. One click on <b>UNMASK</b>
 <tr><td><b>One shared room</b></td><td>8 rooms (from Dry Booth to Cenote and Nebula). Every star uses the same room, so depth glues the mix.</td></tr>
 <tr><td><b>Scenes + Morph</b></td><td>Store 4 complete mixes and automate MORPH in Live to fly between them.</td></tr>
 </table>
-<div class="box tip">Everything is in English by default; press <span class="key">ES</span> (top right) for Spanish. Free, complete, no paid version.</div>
+<div class="box tip">Everything is in English by default; press <span class="key">ES</span> (top right) for Spanish. The plugin is complete for 30 days; then one licence (US$39) keeps it working forever. The web version is a free demo.</div>
 """},
 {"title": "Install", "html": """
 <h3>macOS (Apple Silicon and Intel)</h3>
@@ -67,7 +67,8 @@ In DAWs that sandbox plug-ins in separate processes (for example Bitwig's "isola
 <tr><td><b>ES / EN · ?</b></td><td>Language and the quick guide.</td></tr>
 <tr><td><b>Sky</b></td><td>All stars. Size = loudness, corona = spectrum (10 bands), red tips = Unmask cuts, red filaments = clashes, the cyan head = the listener, gold boxes = speakers (surround outputs).</td></tr>
 <tr><td><b>Right panel</b></td><td>The selected star: role, 9 knobs, priority, mute, solo and the band meter (red from the top = Unmask cut).</td></tr>
-<tr><td><b>Bottom bar</b></td><td>Scenes A–D, Morph (SKY), Auto-Mix, Untangle, 360° Wrap, Mono (SKY) and meters.</td></tr>
+<tr><td><b>Bottom bar</b></td><td>Scenes A–D, Morph (SKY), Auto-Mix, Untangle, 360° Wrap, Mono (SKY), <b>Surround export</b> (SKY) and meters.</td></tr>
+<tr><td><b>Trial (gold, top)</b></td><td>Days left of the trial; opens the licence window. Disappears once activated.</td></tr>
 <tr><td><b>♥ corner button</b></td><td>If you like it, buy me a coffee (PayPal). Totally optional.</td></tr>
 </table>
 """},
@@ -153,8 +154,7 @@ Turn it off before you bounce a mix for speakers.</p>
 <p>In DAWs with multichannel tracks (Logic Pro, Reaper, Cubase / Nuendo, Studio One, Pro Tools-style hosts) set the track or
 plug-in output to <b>Quad, 5.1, 7.1, 5.1.2, 5.1.4, 7.1.2 or 7.1.4</b>. Constellation detects the layout, draws the speakers around the
 listener and pans every star between them, with height speakers for elevated stars and the room spread around the whole array. LFE stays free for your bass management.</p>
-<div class="box warn"><b>About Ableton Live:</b> Live's tracks are stereo only, so it cannot carry a 5.1 / 7.1.4 signal between devices. In Live use <b>3D Phones</b> for immersive mixing;
-for real speaker arrays use a DAW with surround buses (the same project ideas and presets apply).</div>
+<div class="box warn"><b>About Ableton Live:</b> Live's tracks are stereo only, so it cannot carry a 5.1 / 7.1.4 signal between devices. In Live mix immersive with <b>3D Phones</b> and get the speaker version with <b>Surround export</b> (see its own page).</div>
 <h3>360° Wrap</h3>
 <p>At 0 the stars form a stage in front of you (like stereo). Raise it and the depth axis bends around the listener: far stars go to your sides and then behind you.
 The cyan listener walks into the sky so you can see it.</p>
@@ -169,6 +169,41 @@ The cyan listener walks into the sky so you can see it.</p>
 <div class="box tip">The scenes are saved with your Live Set. Stars are recognised by an internal ID, so renaming or moving tracks does not break them.</div>
 <h3>Mono and correlation</h3>
 <p>In SKY, <b>Mono</b> folds the master to mono so you can check that nothing disappears on phones or club systems. The <b>Corr</b> dot should stay on the gold (right) side; left of centre (red) means phase problems — usually something too wide.</p>
+"""},
+{"title": "Surround export from Ableton Live", "html": """
+<p>Ableton Live's tracks are stereo, so a surround mix cannot travel through Live's mixer. CONSTELLATION goes around it: while you export,
+every star also renders the surround version of itself, and the <b>SKY on the Master</b> collects all of them, sample-locked to Live's timeline,
+and writes a real multichannel WAV. You mix on headphones with <b>3D Phones</b> and get a speaker-ready file.</p>
+<img class="shot" style="width:84%;display:block;margin:0 auto" src="{{plugin-surround-export.png}}"><div class="cap">SKY window: the <b>Surround export</b> group (bottom), armed and waiting.</div>
+<h3>Step by step</h3>
+<ol><li>Make sure the SKY instance is on the <b>Master</b> (in Live 12 the Main track).</li>
+<li>In <b>Surround export</b> choose the format: <b>5.1</b>, <b>7.1</b> or <b>7.1.4</b>.</li>
+<li>Press <b>REC</b>. It turns red and says <i>Armed: press Play or Export Audio in Live</i>.</li>
+<li>In Live use <b>File → Export Audio/Video</b> (Rendered Track: Main) as usual — or simply play the song from the start.</li>
+<li>When the transport stops, the files are closed and the label says <i>Saved</i>. Click it to open the folder.</li></ol>
+"""},
+{"title": "Surround export: the files", "html": """
+<h3>What you get</h3>
+<table><tr><th style="width:42%">File (Music › Constellation Surround)</th><th>Content</th></tr>
+<tr><td><b>Constellation_&lt;date&gt;_7.1.4.wav</b></td><td>24-bit WAV, Live's sample rate, standard WAVE-EXTENSIBLE channel mask.</td></tr>
+<tr><td><b>Constellation_&lt;date&gt;_Binaural.wav</b></td><td>The same mix rendered for headphones (stereo) — ready for Apple Music / YouTube "spatial on headphones" previews.</td></tr></table>
+<table><tr><th style="width:18%">Format</th><th>Channel order</th></tr>
+<tr><td><b>5.1</b></td><td>L · R · C · LFE · Ls · Rs</td></tr>
+<tr><td><b>7.1</b></td><td>L · R · C · LFE · Lrs · Rrs · Lss · Rss (rears then sides, WAV order)</td></tr>
+<tr><td><b>7.1.4</b></td><td>the 7.1 above + Ltf · Rtf · Ltr · Rtr (height)</td></tr></table>
+<p>Open it in Logic Pro, Reaper, Nuendo, Pro Tools, DaVinci Resolve or the Dolby Atmos Renderer and route it to a 5.1 / 7.1 / 7.1.4 bus: every star sits where you placed it, with elevated stars in the height speakers. It is a channel-based <b>bed</b> (not an ADM object file). LFE is left empty so your bass management stays in control.</p>
+<div class="box warn"><b>Good to know:</b> the stars write at the timeline position Live gives them, so keep plug-ins with large latency (linear-phase EQs, look-ahead limiters) off the star tracks, or put them on the Master after the export. Unfreeze star tracks before exporting. Everything not running through a star (a track without CONSTELLATION) is not in the surround file.</div>
+"""},
+{"title": "Trial and licence", "html": """
+<p>CONSTELLATION comes <b>complete for 30 days</b> — every feature, including surround export. After 30 days the stars stay visible but the audio passes through untouched until you activate a licence. Your sessions are never damaged: activate and everything sounds exactly as before.</p>
+<img class="shot" style="width:78%;display:block;margin:0 auto" src="{{plugin-licence.png}}"><div class="cap">The licence window: click the gold <b>Trial</b> button at the top of the plug-in.</div>
+<table><tr><th style="width:30%">Licence</th><th></th></tr>
+<tr><td><b>Price</b></td><td><b>US$39</b>, once. No subscription.</td></tr>
+<tr><td><b>Includes</b></td><td>One person, all your computers, Mac and Windows, VST3 and AU, every 1.x update.</td></tr>
+<tr><td><b>How to buy</b></td><td>Press <b>Buy licence</b> (PayPal). Your key arrives by e-mail at the address you paid with, usually the same day.</td></tr>
+<tr><td><b>How to activate</b></td><td>Trial button → paste your e-mail and the whole key → <b>ACTIVATE</b>. Works offline, no account.</td></tr>
+<tr><td><b>New computer</b></td><td>Install and activate again with the same e-mail and key.</td></tr></table>
+<p>The web version stays a free demo so anyone can try the idea before installing.</p>
 """},
 {"title": "The web version", "html": """
 <p>Try CONSTELLATION in any browser, on a computer or a phone — nothing to install. It has the same sky, Unmask, Auto-Mix, Untangle, rooms, 3D Phones, 360° Wrap, scenes and morph,
@@ -186,9 +221,10 @@ with a built-in funk demo band (kick, snare & clap, hats, funk bass, clav keys, 
 <tr><td>Live's panner and Constellation fight.</td><td>Leave Live's pan knob at C; pan with the star.</td></tr>
 <tr><td>Too much reverb.</td><td>Lower Space on the star, bring it forward (depth), or choose a drier room.</td></tr>
 <tr><td>The mix sounds thin with Unmask.</td><td>Lower Unmask on the lower-priority stars or move them apart in space.</td></tr>
-<tr><td>CPU.</td><td>Each star is light (no FFT on the audio thread). Freeze tracks you don't need to move.</td></tr>
+<tr><td>CPU.</td><td>Each star is light (no FFT on the audio thread). Freeze tracks you don't need to move — but unfreeze star tracks before a surround export (frozen tracks don't run plug-ins).</td></tr>
 <tr><td>Latency?</td><td>Zero. Nothing to compensate.</td></tr>
-<tr><td>Is it free?</td><td>Yes: complete, free and open source (GPL-3.0). No paid version, no account.</td></tr>
+<tr><td>Is there a trial?</td><td>Yes: 30 days with everything unlocked, then a US$39 licence (see the licence page). The source code stays public under GPL-3.0.</td></tr>
+<tr><td>The surround file is silent or a track is missing.</td><td>The SKY must be on the Master, the recorder armed before you press Play / Export, and the star tracks must not be frozen or deactivated.</td></tr>
 </table>
 <h3>Credits</h3>
 <p>Design by <b>Dark Funk Durcal</b> — <i>What is Dark Funk Durcal? Search it on Spotify, YouTube and every audio platform.</i><br>
@@ -200,7 +236,7 @@ Source code: github.com/drophlex/CONSTELLATION · Built with JUCE.</p>
 
 ES = {
 "tag": "Mezcla moviendo estrellas.",
-"sub": "Mezclador visual 3D · desenmascarado espectral consciente del espacio · binaural y surround hasta 7.1.4<br>VST3 · AU · Web — gratis y de código abierto — hecho para Ableton Live, funciona en cualquier DAW",
+"sub": "Mezclador visual 3D · desenmascarado espectral consciente del espacio · binaural y surround hasta 7.1.4<br>VST3 · AU · Web — prueba completa de 30 días — hecho para Ableton Live, funciona en cualquier DAW",
 "manual": "Manual de usuario", "footer": "Manual de usuario",
 "sections": [
 {"title": "¿Qué es CONSTELLATION?", "html": """
@@ -222,7 +258,7 @@ indican que pelean por las mismas frecuencias. Un clic en <b>DESENMASCARAR</b>, 
 <tr><td><b>Una sola sala compartida</b></td><td>8 salas (de Cabina seca a Cenote y Nebulosa). Todas las estrellas usan la misma, así la profundidad une la mezcla.</td></tr>
 <tr><td><b>Escenas + Morph</b></td><td>Guarda 4 mezclas completas y automatiza MORPH en Live para volar entre ellas.</td></tr>
 </table>
-<div class="box tip">Todo viene en inglés; presiona <span class="key">ES</span> (arriba a la derecha) para español. Gratis, completo, sin versión de pago.</div>
+<div class="box tip">Todo viene en inglés; presiona <span class="key">ES</span> (arriba a la derecha) para español. El plugin está completo durante 30 días; después una licencia (US$39) lo deja funcionando para siempre. La versión web es una demo gratis.</div>
 """},
 {"title": "Instalación", "html": """
 <h3>macOS (Apple Silicon e Intel)</h3>
@@ -263,7 +299,8 @@ En DAWs que aíslan los plug-ins en procesos separados (por ejemplo el modo "ais
 <tr><td><b>ES / EN · ?</b></td><td>Idioma y guía rápida.</td></tr>
 <tr><td><b>Cielo</b></td><td>Todas las estrellas. Tamaño = volumen, corona = espectro (10 bandas), puntas rojas = recortes de Desenmascarar, filamentos rojos = choques, la cabeza cian = el oyente, cajas doradas = bocinas (salidas surround).</td></tr>
 <tr><td><b>Panel derecho</b></td><td>La estrella seleccionada: rol, 9 perillas, prioridad, mute, solo y medidor de bandas (rojo desde arriba = recorte).</td></tr>
-<tr><td><b>Barra inferior</b></td><td>Escenas A–D, Morph (CIELO), Auto-Mezcla, Desenredar, Envolvente 360°, Mono (CIELO) y medidores.</td></tr>
+<tr><td><b>Barra inferior</b></td><td>Escenas A–D, Morph (CIELO), Auto-Mezcla, Desenredar, Envolvente 360°, Mono (CIELO), <b>Exportar surround</b> (CIELO) y medidores.</td></tr>
+<tr><td><b>Prueba (dorado, arriba)</b></td><td>Días que quedan de prueba; abre la ventana de licencia. Desaparece al activar.</td></tr>
 <tr><td><b>Botón ♥ de la esquina</b></td><td>Si te gusta, invítame un café (PayPal). Totalmente opcional.</td></tr>
 </table>
 """},
@@ -349,8 +386,7 @@ Apágalo antes de exportar una mezcla para bocinas.</p>
 <p>En DAWs con pistas multicanal (Logic Pro, Reaper, Cubase / Nuendo, Studio One y similares) pon la salida de la pista o del plug-in en
 <b>Quad, 5.1, 7.1, 5.1.2, 5.1.4, 7.1.2 o 7.1.4</b>. Constellation detecta el formato, dibuja las bocinas alrededor del oyente y panea cada estrella entre ellas,
 con bocinas de altura para las estrellas elevadas y la sala repartida en todo el arreglo. El LFE queda libre para tu manejo de graves.</p>
-<div class="box warn"><b>Sobre Ableton Live:</b> las pistas de Live son solo estéreo, así que no puede llevar una señal 5.1 / 7.1.4 entre dispositivos. En Live usa <b>3D audífonos</b> para mezclar inmersivo;
-para arreglos reales de bocinas usa un DAW con buses surround (aplican las mismas ideas y estilos).</div>
+<div class="box warn"><b>Sobre Ableton Live:</b> las pistas de Live son solo estéreo, así que no puede llevar una señal 5.1 / 7.1.4 entre dispositivos. En Live mezcla inmersivo con <b>3D audífonos</b> y obtén la versión para bocinas con <b>Exportar surround</b> (ver su propia página).</div>
 <h3>Envolvente 360°</h3>
 <p>En 0 las estrellas forman un escenario frente a ti (como estéreo). Al subirlo, el eje de profundidad se curva alrededor del oyente: las estrellas lejanas pasan a tus lados y luego detrás de ti.
 El oyente cian entra al cielo para que lo veas.</p>
@@ -365,6 +401,41 @@ El oyente cian entra al cielo para que lo veas.</p>
 <div class="box tip">Las escenas se guardan con tu Live Set. Las estrellas se reconocen por un ID interno, así que renombrar o mover pistas no las rompe.</div>
 <h3>Mono y correlación</h3>
 <p>En CIELO, <b>Mono</b> suma el master a mono para revisar que nada desaparezca en celulares o sistemas de club. El punto <b>Corr</b> debe quedarse del lado dorado (derecha); a la izquierda del centro (rojo) hay problemas de fase, casi siempre algo demasiado ancho.</p>
+"""},
+{"title": "Exportar surround desde Ableton Live", "html": """
+<p>Las pistas de Ableton Live son estéreo, así que una mezcla surround no puede viajar por el mezclador de Live. CONSTELLATION le da la vuelta: mientras exportas,
+cada estrella también procesa su versión surround y el <b>CIELO del Master</b> las junta todas, amarradas muestra por muestra a la línea de tiempo de Live,
+y escribe un WAV multicanal real. Mezclas en audífonos con <b>3D audífonos</b> y obtienes un archivo listo para bocinas.</p>
+<img class="shot" style="width:84%;display:block;margin:0 auto" src="{{plugin-surround-export.png}}"><div class="cap">Ventana CIELO: el grupo <b>Exportar surround</b> (abajo), armado y esperando.</div>
+<h3>Paso a paso</h3>
+<ol><li>Revisa que la instancia CIELO esté en el <b>Master</b> (en Live 12 la pista Main).</li>
+<li>En <b>Exportar surround</b> elige el formato: <b>5.1</b>, <b>7.1</b> o <b>7.1.4</b>.</li>
+<li>Presiona <b>REC</b>. Se pone rojo y dice <i>Armado: presiona Play o Exportar audio en Live</i>.</li>
+<li>En Live usa <b>Archivo → Exportar audio/video</b> (pista renderizada: Main) como siempre, o simplemente reproduce la canción desde el inicio.</li>
+<li>Cuando se detiene el transporte, los archivos se cierran y la etiqueta dice <i>Guardado</i>. Haz clic para abrir la carpeta.</li></ol>
+"""},
+{"title": "Exportar surround: los archivos", "html": """
+<h3>Lo que obtienes</h3>
+<table><tr><th style="width:42%">Archivo (Música › Constellation Surround)</th><th>Contenido</th></tr>
+<tr><td><b>Constellation_&lt;fecha&gt;_7.1.4.wav</b></td><td>WAV de 24 bits, la frecuencia de muestreo de Live, máscara de canales WAVE-EXTENSIBLE estándar.</td></tr>
+<tr><td><b>Constellation_&lt;fecha&gt;_Binaural.wav</b></td><td>La misma mezcla procesada para audífonos (estéreo), lista para previews "espaciales en audífonos".</td></tr></table>
+<table><tr><th style="width:18%">Formato</th><th>Orden de canales</th></tr>
+<tr><td><b>5.1</b></td><td>L · R · C · LFE · Ls · Rs</td></tr>
+<tr><td><b>7.1</b></td><td>L · R · C · LFE · Lrs · Rrs · Lss · Rss (traseras y luego laterales, orden WAV)</td></tr>
+<tr><td><b>7.1.4</b></td><td>el 7.1 anterior + Ltf · Rtf · Ltr · Rtr (altura)</td></tr></table>
+<p>Ábrelo en Logic Pro, Reaper, Nuendo, Pro Tools, DaVinci Resolve o el Dolby Atmos Renderer y mándalo a un bus 5.1 / 7.1 / 7.1.4: cada estrella queda donde la pusiste, con las elevadas en las bocinas de altura. Es una <b>cama</b> de canales (no un archivo ADM de objetos). El LFE queda vacío para que tú controles el manejo de graves.</p>
+<div class="box warn"><b>Importante:</b> las estrellas escriben en la posición de la línea de tiempo que les da Live, así que evita plug-ins con mucha latencia (EQs de fase lineal, limitadores con look-ahead) en las pistas con estrella, o ponlos en el Master después de exportar. Descongela las pistas con estrellas antes de exportar. Lo que no pasa por una estrella (una pista sin CONSTELLATION) no queda en el archivo surround.</div>
+"""},
+{"title": "Prueba y licencia", "html": """
+<p>CONSTELLATION viene <b>completo durante 30 días</b>, con todas las funciones, incluida la exportación surround. Después de 30 días las estrellas siguen visibles pero el audio pasa sin procesar hasta que actives una licencia. Tus sesiones nunca se dañan: activas y todo suena exactamente igual que antes.</p>
+<img class="shot" style="width:78%;display:block;margin:0 auto" src="{{plugin-licence.png}}"><div class="cap">La ventana de licencia: haz clic en el botón dorado <b>Prueba</b> arriba del plug-in.</div>
+<table><tr><th style="width:30%">Licencia</th><th></th></tr>
+<tr><td><b>Precio</b></td><td><b>US$39</b>, un solo pago. Sin suscripción.</td></tr>
+<tr><td><b>Incluye</b></td><td>Una persona, todas tus computadoras, Mac y Windows, VST3 y AU, todas las actualizaciones 1.x.</td></tr>
+<tr><td><b>Cómo comprar</b></td><td>Presiona <b>Comprar licencia</b> (PayPal). Tu llave llega por correo a la dirección con la que pagaste, normalmente el mismo día.</td></tr>
+<tr><td><b>Cómo activar</b></td><td>Botón Prueba → pega tu correo y la llave completa → <b>ACTIVAR</b>. Funciona sin internet y sin cuenta.</td></tr>
+<tr><td><b>Computadora nueva</b></td><td>Instala y activa otra vez con el mismo correo y llave.</td></tr></table>
+<p>La versión web sigue siendo una demo gratis para que cualquiera pruebe la idea antes de instalar.</p>
 """},
 {"title": "La versión web", "html": """
 <p>Prueba CONSTELLATION en cualquier navegador, en computadora o celular, sin instalar nada. Tiene el mismo cielo, Desenmascarar, Auto-Mezcla, Desenredar, salas, 3D audífonos, Envolvente 360°, escenas y morph,
@@ -382,9 +453,10 @@ con una banda funk de demo integrada (bombo, caja y clap, hats, bajo funk, clavi
 <tr><td>El paneo de Live y Constellation se pelean.</td><td>Deja la perilla de paneo de Live en C; panea con la estrella.</td></tr>
 <tr><td>Demasiada reverb.</td><td>Baja Espacio en la estrella, tráela al frente (profundidad) o elige una sala más seca.</td></tr>
 <tr><td>La mezcla suena delgada con Desenmascarar.</td><td>Baja Desenmascarar en las estrellas de menor prioridad o sepáralas en el espacio.</td></tr>
-<tr><td>CPU.</td><td>Cada estrella es ligera (sin FFT en el hilo de audio). Congela las pistas que no necesites mover.</td></tr>
+<tr><td>CPU.</td><td>Cada estrella es ligera (sin FFT en el hilo de audio). Congela las pistas que no necesites mover, pero descongela las pistas con estrellas antes de exportar surround (las pistas congeladas no corren plug-ins).</td></tr>
 <tr><td>¿Latencia?</td><td>Cero. Nada que compensar.</td></tr>
-<tr><td>¿Es gratis?</td><td>Sí: completo, gratis y de código abierto (GPL-3.0). Sin versión de pago ni cuenta.</td></tr>
+<tr><td>¿Hay prueba?</td><td>Sí: 30 días con todo desbloqueado y luego una licencia de US$39 (ver la página de licencia). El código fuente sigue público bajo GPL-3.0.</td></tr>
+<tr><td>El archivo surround sale en silencio o falta una pista.</td><td>El CIELO debe estar en el Master, el grabador armado antes de dar Play / Exportar, y las pistas con estrellas no deben estar congeladas ni desactivadas.</td></tr>
 </table>
 <h3>Créditos</h3>
 <p>Diseño de <b>Dark Funk Durcal</b> — <i>What is Dark Funk Durcal? Search it on Spotify, YouTube and every audio platform.</i><br>

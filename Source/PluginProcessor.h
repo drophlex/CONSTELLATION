@@ -1,6 +1,7 @@
 // CONSTELLATION — by Polaris Sound Lab (Mérida, Yucatán). Design: Dark Funk Durcal. GPL-3.0
 #pragma once
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_audio_formats/juce_audio_formats.h>
 #include "Registry.h"
 #include "DSP.h"
 #include "Styles.h"
@@ -58,6 +59,26 @@ public:
 
     static float pairMasking (int a, int b);   // 0..1, used by editor and untangle
 
+    // ── Surround recorder (SKY on the Master) ──
+    enum RecState { recIdle = 0, recWaiting, recRunning, recDone };
+    bool armRecorder (int format);              // message thread
+    void stopRecorder();                        // message thread
+    int  getRecState() const noexcept { return recState.load(); }
+    double getRecSeconds() const noexcept { return (double) recSamples.load() / juce::jmax (1.0, sr); }
+    juce::File lastRecording, lastRecordingBin;
+    juce::String getTrackName() const { return trackName; }
+
+    // ── Licence / trial ──
+    struct Licence
+    {
+        std::atomic<bool> licensed { false }; juce::String owner; std::atomic<int> daysLeft { 30 };
+        Licence() = default;
+        Licence (Licence&& o) : licensed (o.licensed.load()), owner (o.owner), daysLeft (o.daysLeft.load()) {}
+        bool expired() const noexcept { return ! licensed.load() && daysLeft.load() <= 0; }
+    };
+    static Licence& licence();
+    static bool activate (const juce::String& email, const juce::String& key);
+
 private:
     void timerCallback() override;
     void applyMorph (float m);
@@ -106,6 +127,20 @@ private:
     float lastVals[cst::kNumStarParams] {};
     int   lastRoom = -1; float lastWrap = -1; int lastBin = -1;
     float peakHold = -100.0f;
+
+    // surround recorder
+    cst::SpeakerLayout recLayout; int recLayoutFmt = -1;
+    std::vector<float> recG, recGPrev, recRev;
+    cst::BinauralSource recBin[2];
+    juce::AudioBuffer<float> recScratch;
+    std::atomic<int> recState { recIdle };
+    std::atomic<juce::int64> recSamples { 0 };
+    juce::SpinLock writerLock;
+    std::unique_ptr<juce::AudioFormatWriter::ThreadedWriter> bedWriter, binWriter;
+    std::unique_ptr<juce::TimeSliceThread> writerThread;
+    int recChannels = 0;
+    void finishRecorder();
+    bool readPlayhead (juce::int64& pos, bool& playing);
 
     // sky meters
     float corrNum = 0, corrDen1 = 1e-9f, corrDen2 = 1e-9f;

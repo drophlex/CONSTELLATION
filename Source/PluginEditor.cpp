@@ -24,6 +24,82 @@ struct HelpOverlay : juce::Component
     }
     void mouseDown (const juce::MouseEvent&) override { setVisible (false); }
 };
+struct LicencePanel : juce::Component
+{
+    juce::TextEditor email, key;
+    juce::TextButton buy, activate, close;
+    juce::String status; bool ok = false;
+    std::function<void()> onDone;
+    LicencePanel()
+    {
+        for (auto* t : { &email, &key })
+        {
+            addAndMakeVisible (*t);
+            t->setFont (F (15.0f, false));
+            t->setColour (juce::TextEditor::backgroundColourId, juce::Colour (0xff070917));
+            t->setColour (juce::TextEditor::outlineColourId, Theme::line().brighter (0.3f));
+            t->setColour (juce::TextEditor::focusedOutlineColourId, Theme::cyan());
+            t->setColour (juce::TextEditor::textColourId, Theme::text());
+        }
+        key.setMultiLine (true); key.setReturnKeyStartsNewLine (false);
+        for (auto* b : { &buy, &activate, &close }) addAndMakeVisible (*b);
+        buy.setColour (juce::TextButton::buttonOnColourId, Theme::gold()); buy.setToggleState (true, juce::dontSendNotification);
+        activate.setColour (juce::TextButton::buttonOnColourId, Theme::cyan()); activate.setToggleState (true, juce::dontSendNotification);
+        close.setColour (juce::TextButton::buttonOnColourId, Theme::cyan());
+        buy.onClick = [] { juce::URL (kBuyUrl).launchInDefaultBrowser(); };
+        activate.onClick = [this]
+        {
+            ok = ConstellationProcessor::activate (email.getText(), key.getText());
+            status = ok ? T2 (xActOk) : T2 (xActBad);
+            repaint();
+            if (ok && onDone) onDone();
+        };
+        close.onClick = [this] { setVisible (false); };
+        refreshTexts();
+    }
+    void refreshTexts()
+    {
+        buy.setButtonText (T2 (xBuy) + "  " + kPrice); activate.setButtonText (T2 (xActivate)); close.setButtonText (T2 (xClose));
+        email.setTextToShowWhenEmpty (T2 (xEmail), Theme::dim()); key.setTextToShowWhenEmpty (T2 (xKey), Theme::dim());
+        repaint();
+    }
+    juce::Rectangle<int> box() const { return getLocalBounds().withSizeKeepingCentre (juce::jmin (640, getWidth() - 40), juce::jmin (520, getHeight() - 40)); }
+    void paint (juce::Graphics& g) override
+    {
+        g.fillAll (juce::Colour (0xe6040512));
+        auto r = box().toFloat();
+        g.setColour (Theme::panel()); g.fillRoundedRectangle (r, 16.0f);
+        g.setColour (Theme::gold().withAlpha (0.7f)); g.drawRoundedRectangle (r, 16.0f, 1.5f);
+        auto in = r.reduced (28, 22);
+        g.setColour (Theme::text()); g.setFont (F (22.0f));
+        g.drawText (T2 (xLicTitle), in.removeFromTop (32).toNearestInt(), juce::Justification::centredLeft);
+        auto& L = ConstellationProcessor::licence();
+        g.setFont (F (13.0f));
+        g.setColour (L.licensed ? Theme::cyan() : (L.expired() ? Theme::danger() : Theme::gold()));
+        const auto st = L.licensed ? T2 (xLicensed) + ": " + L.owner
+                                   : (L.expired() ? T2 (xExpired) : T2 (xTrial).replace ("%d", juce::String (L.daysLeft.load())));
+        g.drawText (st, in.removeFromTop (22).toNearestInt(), juce::Justification::centredLeft);
+        g.setColour (Theme::text().withAlpha (0.85f)); g.setFont (F (13.5f, false));
+        g.drawFittedText (T2 (xLicText).replace ("%s", kPrice), in.removeFromTop (118).toNearestInt(), juce::Justification::topLeft, 12, 1.0f);
+        if (status.isNotEmpty())
+        {
+            g.setColour (ok ? Theme::cyan() : Theme::danger()); g.setFont (F (13.0f));
+            g.drawFittedText (status, box().reduced (28, 22).removeFromBottom (64).removeFromTop (22), juce::Justification::centredLeft, 2);
+        }
+    }
+    void resized() override
+    {
+        auto in = box().reduced (28, 22);
+        in.removeFromTop (32 + 22 + 118 + 8);
+        buy.setBounds (in.removeFromTop (40).removeFromLeft (260)); in.removeFromTop (14);
+        email.setBounds (in.removeFromTop (34)); in.removeFromTop (8);
+        key.setBounds (in.removeFromTop (70)); in.removeFromTop (10);
+        auto row = in.removeFromBottom (38);
+        close.setBounds (row.removeFromRight (110)); row.removeFromRight (10);
+        activate.setBounds (row.removeFromRight (150));
+    }
+    void mouseDown (const juce::MouseEvent& e) override { if (! box().contains (e.getPosition())) setVisible (false); }
+};
 } // namespace
 
 // ───────────────────────────── LookAndFeel ─────────────────────────────
@@ -603,6 +679,31 @@ ConstellationEditor::ConstellationEditor (ConstellationProcessor& p)
     help = std::make_unique<HelpOverlay>();
     addChildComponent (*help);
 
+    // surround export (SKY)
+    tb (recBtn, Theme::danger());
+    addAndMakeVisible (recFormat);
+    for (int f = 0; f < 3; ++f) recFormat.addItem (recFormatName (f), f + 1);
+    recFormat.setSelectedItemIndex (Registry::get().globals.recFormat.load(), juce::dontSendNotification);
+    for (auto* l : { &recLabel, &exportLabel }) { addAndMakeVisible (*l); l->setFont (F (11.0f)); l->setColour (juce::Label::textColourId, Theme::dim()); }
+    recLabel.setFont (F (10.5f, false));
+    recLabel.setInterceptsMouseClicks (true, false);
+    recLabel.addMouseListener (this, false);
+    recBtn.onClick = [this]
+    {
+        if (proc.getRecState() == ConstellationProcessor::recIdle) proc.armRecorder (recFormat.getSelectedItemIndex());
+        else proc.stopRecorder();
+        refreshRec();
+    };
+
+    // licence
+    tb (licBtn, Theme::gold());
+    licBtn.onClick = [this] { showLicence(); };
+    auto lp = std::make_unique<LicencePanel>();
+    lp->onDone = [this] { refreshTexts(); };
+    licPanel = std::move (lp);
+    addChildComponent (*licPanel);
+    if (ConstellationProcessor::licence().expired()) juce::MessageManager::callAsync ([sp = juce::Component::SafePointer<ConstellationEditor> (this)] { if (sp) sp->showLicence(); });
+
     select (proc.isSkyMode() ? -1 : proc.getSlot());
     refreshTexts();
     setResizable (true, true);
@@ -612,6 +713,42 @@ ConstellationEditor::ConstellationEditor (ConstellationProcessor& p)
 }
 
 ConstellationEditor::~ConstellationEditor() { stopTimer(); setLookAndFeel (nullptr); }
+
+void ConstellationEditor::showLicence()
+{
+    static_cast<LicencePanel*> (licPanel.get())->refreshTexts();
+    licPanel->setBounds (getLocalBounds());
+    licPanel->setVisible (true);
+    licPanel->toFront (true);
+}
+
+void ConstellationEditor::refreshRec()
+{
+    const int st = proc.getRecState();
+    recBtn.setToggleState (st != ConstellationProcessor::recIdle, juce::dontSendNotification);
+    const bool blink = st == ConstellationProcessor::recRunning && (juce::Time::getMillisecondCounter() / 500) % 2 == 0;
+    recBtn.setButtonText (juce::String::fromUTF8 (blink ? "\xe2\x97\x8f " : "\xe2\x97\x8b ") + T2 (xRec));
+    recFormat.setEnabled (st == ConstellationProcessor::recIdle);
+    juce::String txt;
+    if (st == ConstellationProcessor::recWaiting) txt = T2 (xArmed);
+    else if (st == ConstellationProcessor::recRunning)
+    {
+        const int secs = (int) proc.getRecSeconds();
+        txt = T2 (xRecording) + "  " + juce::String (secs / 60) + ":" + juce::String (secs % 60).paddedLeft ('0', 2);
+    }
+    else if (proc.lastRecording.existsAsFile()) txt = T2 (xSaved);
+    else
+    {
+        const auto tn = proc.getTrackName().toLowerCase();
+        txt = (tn == "master" || tn == "main" || tn == "track") ? juce::String() : T2 (xMasterHint);
+    }
+    recLabel.setText (txt, juce::dontSendNotification);
+    recLabel.setColour (juce::Label::textColourId, st == ConstellationProcessor::recRunning ? Theme::danger() : (st == ConstellationProcessor::recWaiting ? Theme::gold() : Theme::dim()));
+    auto& L = ConstellationProcessor::licence();
+    licBtn.setVisible (! L.licensed.load());
+    licBtn.setButtonText (L.expired() ? T2 (xBuy) : T2 (xTrial).replace ("%d", juce::String (L.daysLeft.load())));
+    licBtn.setToggleState (L.expired(), juce::dontSendNotification);
+}
 
 void ConstellationEditor::select (int slot)
 {
@@ -638,6 +775,8 @@ void ConstellationEditor::refreshTexts()
     prioLabel.setText (T (sPriority), juce::dontSendNotification);
     scenesLabel.setText (T (sScenes), juce::dontSendNotification);
     autoLabel.setText (T (sAutoMix), juce::dontSendNotification);
+    exportLabel.setText (T2 (xExport), juce::dontSendNotification);
+    if (licPanel) static_cast<LicencePanel*> (licPanel.get())->refreshTexts();
     const int knobKeys[9] = { sGain, sWidth, sTone, sPan, sHeight, sDepth, sSpace, sLowCut, sUnmask };
     for (int i = 0; i < 9; ++i) knobs[(size_t) i].l.setText (T (knobKeys[i]), juce::dontSendNotification);
 
@@ -708,6 +847,7 @@ void ConstellationEditor::timerCallback()
     const bool skyMode = proc.isSkyMode();
     if (skyMode != storeBtn.isVisible()) { resized(); refreshTexts(); }
     refreshPanel();
+    refreshRec();
     sky.repaint(); bands.repaint(); meter.repaint();
     repaint (getLocalBounds().removeFromRight (310).removeFromTop (120));
 }
@@ -763,6 +903,11 @@ void ConstellationEditor::paint (juce::Graphics& g)
 
 void ConstellationEditor::paintOverChildren (juce::Graphics&) {}
 
+void ConstellationEditor::mouseDown (const juce::MouseEvent& e)
+{
+    if (e.eventComponent == &recLabel && proc.lastRecording.existsAsFile()) proc.lastRecording.revealToUser();
+}
+
 void ConstellationEditor::resized()
 {
     const bool skyMode = proc.isSkyMode();
@@ -778,6 +923,9 @@ void ConstellationEditor::resized()
     langBtn.setBounds (top.removeFromRight (40)); top.removeFromRight (5);
     phones.setBounds (top.removeFromRight (124)); top.removeFromRight (8);
     room.setBounds (top.removeFromRight (160));
+    top.removeFromRight (8);
+    if (top.getWidth() > 60) licBtn.setBounds (top.removeFromRight (juce::jmin (170, top.getWidth())));
+    if (licPanel) licPanel->setBounds (getLocalBounds());
 
     auto bottom = r.removeFromBottom (122);
     auto footer = bottom.removeFromBottom (26);
@@ -806,12 +954,22 @@ void ConstellationEditor::resized()
         untangleBtn.setBounds (am.removeFromTop (30).withTrimmedTop (4));
     }
     {
-        auto wr = col (220);
+        auto wr = col (skyMode ? 190 : 220);
         wrapLabel.setBounds (wr.removeFromTop (18));
         wrapSlider.setBounds (wr.removeFromTop (34));
         if (skyMode) monoBtn.setBounds (wr.removeFromTop (30).withTrimmedTop (4).removeFromLeft (90));
     }
-    meter.setBounds (b.withTrimmedRight (0).removeFromLeft (juce::jmin (280, b.getWidth())));
+    for (juce::Component* c : { (juce::Component*) &recBtn, (juce::Component*) &recFormat, (juce::Component*) &recLabel, (juce::Component*) &exportLabel }) c->setVisible (skyMode);
+    if (skyMode)
+    {
+        auto ex = col (230);
+        exportLabel.setBounds (ex.removeFromTop (18));
+        auto row = ex.removeFromTop (34);
+        recFormat.setBounds (row.removeFromLeft (92)); row.removeFromLeft (6);
+        recBtn.setBounds (row);
+        recLabel.setBounds (ex.removeFromTop (34));
+    }
+    meter.setBounds (b.removeFromLeft (juce::jmin (260, b.getWidth())));
 
     auto panel = r.removeFromRight (310).reduced (16, 12);
     sky.setBounds (r);
