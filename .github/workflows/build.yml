@@ -45,7 +45,7 @@ jobs:
           codesign --force --deep -s - dist/CONSTELLATION-macOS/Constellation.component
           cp installer/install-mac.command dist/CONSTELLATION-macOS/
           chmod +x dist/CONSTELLATION-macOS/install-mac.command
-          cp docs/manual/*.pdf dist/CONSTELLATION-macOS/ || true
+          cp manual/*.pdf dist/CONSTELLATION-macOS/
           cd dist && ditto -c -k --keepParent CONSTELLATION-macOS CONSTELLATION-macOS.zip
 
       - name: Package (Windows)
@@ -55,7 +55,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path dist/CONSTELLATION-Windows | Out-Null
           Copy-Item -Recurse build/Constellation_artefacts/Release/VST3/Constellation.vst3 dist/CONSTELLATION-Windows/
           Copy-Item installer/install-windows.bat dist/CONSTELLATION-Windows/
-          Copy-Item docs/manual/*.pdf dist/CONSTELLATION-Windows/ -ErrorAction SilentlyContinue
+          Copy-Item manual/*.pdf dist/CONSTELLATION-Windows/
           Compress-Archive -Path dist/CONSTELLATION-Windows -DestinationPath dist/CONSTELLATION-Windows.zip
 
       - uses: actions/upload-artifact@v4
@@ -77,6 +77,7 @@ jobs:
           target_commitish: ${{ github.sha }}
           make_latest: true
           files: dist/*.zip
+          overwrite_files: true
           body: |
             ✦ **CONSTELLATION ${{ steps.ver.outputs.v }}** — mix by moving stars. 30-day full trial, then a US$39 licence.
 
