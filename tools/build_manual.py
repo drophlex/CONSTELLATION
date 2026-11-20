@@ -56,8 +56,8 @@ def build(lang):
 <img src="{img('plugin-sky.png')}"><div class="foot"><span>{t['manual']} · v1.0</span><span>Polaris Sound Lab · Mérida, Yucatán, México</span></div></div>""")
     for i, sec in enumerate(t["sections"], 1):
         body = sec["html"]
-        for key in ["plugin-sky.png", "plugin-surround-top.png", "plugin-es.png", "web-desk.png", "web-phone.png", "web-desk2.png"]:
-            body = body.replace("{{" + key + "}}", img(key))
+        import re
+        body = re.sub(r"\{\{([\w.-]+\.png)\}\}", lambda m: img(m.group(1)), body)
         pages.append(f'<div class="page"><h2><span class="n">{i:02d}</span>{sec["title"]}</h2>{body}'
                      f'<div class="brand">CONSTELLATION · {t["footer"]}</div><div class="pnum">{i + 1}</div></div>')
     return "\n".join(pages)
