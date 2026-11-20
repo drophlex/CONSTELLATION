@@ -48,7 +48,7 @@ footer{background:linear-gradient(#0a0e26,#05060f);border-top:1px solid var(--li
 .grp>label{color:var(--dim);font-size:11px}
 .grp .r{display:flex;gap:5px;align-items:center}
 .foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px;color:var(--dim);font-weight:500;font-size:10.5px}
-#donate{color:var(--pink);border-color:#ff4fd855;font-size:11px;padding:4px 10px;white-space:nowrap}
+#donate{text-decoration:none;border:1px solid;border-radius:8px;color:var(--pink);border-color:#ff4fd855;font-size:11px;padding:4px 10px;white-space:nowrap}
 #help{position:fixed;inset:0;background:#040512e8;display:none;align-items:center;justify-content:center;z-index:9;padding:20px}
 #help .box{max-width:820px;max-height:100%;overflow:auto;background:var(--panel);border:1px solid #58e1ff99;border-radius:16px;padding:22px 26px;font-weight:500;white-space:pre-wrap;line-height:1.5}
 #drop{position:fixed;inset:0;border:3px dashed var(--cyan);background:#58e1ff14;display:none;align-items:center;justify-content:center;font-size:24px;z-index:8;pointer-events:none}
@@ -100,7 +100,7 @@ footer{background:linear-gradient(#0a0e26,#05060f);border-top:1px solid var(--li
     <div class="grp" style="min-width:200px"><label data-t="wrap">360° Wrap</label><input type="range" id="wrap" min="0" max="1" step="0.001" value="0" style="--c:#ff4fd8"><div class="r"><button id="mono" class="gold" data-t="mono">Mono</button><button id="loadBtn" data-t="load">+ Add audio</button><input type="file" id="file" accept="audio/*" multiple hidden></div></div>
     <div class="grp"><label><span id="nStars">0</span> <span data-t="online">stars</span></label><canvas id="meter" width="220" height="44" style="width:220px;height:44px;border-radius:8px;border:1px solid var(--line);background:#05060fa0"></canvas></div>
   </div>
-  <div class="foot"><span data-t="footer">Design by Dark Funk Durcal · Created at Polaris Sound Lab · Mérida, Yucatán</span><button id="donate" data-t="donate">♥ If you like it, buy me a coffee</button></div>
+  <div class="foot"><span data-t="footer">Design by Dark Funk Durcal · Created at Polaris Sound Lab · Mérida, Yucatán</span><a id="donate" target="_blank" rel="noopener" href="https://www.paypal.com/donate/?business=drophlex%40gmail.com&currency_code=MXN" data-t="donate">♥ If you like it, buy me a coffee</a></div>
 </footer>
 </div>
 <div id="help"><div class="box" id="helpText"></div></div>
@@ -377,7 +377,6 @@ $("#phones").onclick=()=>{G.binaural=!G.binaural;$("#phones").classList.toggle("
 $("#mono").onclick=()=>{G.mono=!G.mono;$("#mono").classList.toggle("on",G.mono);if(ctx)routeMono();};
 $("#wrap").oninput=e=>{G.wrap=+e.target.value;stars.forEach(updateStar);};
 $("#helpBtn").onclick=()=>$("#help").style.display="flex";$("#help").onclick=()=>$("#help").style.display="none";
-$("#donate").onclick=()=>window.open(DONATE,"_blank");
 $("#apply").onclick=()=>applyStyle(+$("#style").value);$("#untangle").onclick=untangle;
 $("#role").onchange=e=>{if(stars[selected]){stars[selected].role=+e.target.value;syncPanel();}};
 $("#prio").oninput=e=>{if(stars[selected]){stars[selected].priority=+e.target.value;syncPanel();}};
