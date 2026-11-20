@@ -5,22 +5,34 @@ using namespace cst;
 
 namespace
 {
-juce::Font F (float h, bool bold = true) { return juce::Font (juce::FontOptions (h, bold ? juce::Font::bold : juce::Font::plain)); }
+juce::Font F (float h, bool bold = true) { return bold ? psl::ui (h * 1.08f) : psl::body (h); }
 const char* kDonateUrl = "https://www.paypal.com/donate/?business=drophlex%40gmail.com&currency_code=MXN";
 constexpr float kCamD = 3.4f;
+
+void paperSheet (juce::Graphics& g, juce::Rectangle<float> r, const juce::String& code, const juce::String& title, const juce::String& kana)
+{
+    using namespace psl;
+    g.setColour (C::paper); g.fillRect (r);
+    auto head = r.removeFromTop (54);
+    g.setColour (C::cyan); g.fillRect (head);
+    text (g, upper (title), head.reduced (22, 4), display (34), C::ink);
+    text (g, kana, head.reduced (22, 6), jp (15), C::ink, juce::Justification::bottomRight);
+    tech (g, code, head.reduced (22, 6), C::ink, juce::Justification::topRight, 9);
+    regMark (g, { r.getX() + 12, r.getBottom() - 12 }, 6, C::ink);
+    regMark (g, { r.getRight() - 12, r.getBottom() - 12 }, 6, C::ink);
+}
 
 struct HelpOverlay : juce::Component
 {
     void paint (juce::Graphics& g) override
     {
-        g.fillAll (juce::Colour (0xe6040512));
-        auto r = getLocalBounds().reduced (60, 50).toFloat();
-        g.setColour (Theme::panel()); g.fillRoundedRectangle (r, 16.0f);
-        g.setColour (Theme::cyan().withAlpha (0.6f)); g.drawRoundedRectangle (r, 16.0f, 1.5f);
-        g.setColour (Theme::text()); g.setFont (F (14.0f, false));
-        g.drawFittedText (T (sHelpText), r.reduced (30, 26).toNearestInt(), juce::Justification::topLeft, 40, 1.0f);
-        g.setColour (Theme::dim()); g.setFont (F (12.0f, false));
-        g.drawText (T (sFooter), r.reduced (30, 14).toNearestInt(), juce::Justification::bottomRight);
+        g.fillAll (psl::C::ink.withAlpha (0.93f));
+        auto r = getLocalBounds().reduced (60, 44).toFloat();
+        paperSheet (g, r, "CST-HLP // 01", "CONSTELLATION - " + juce::String (Registry::get().globals.lang.load() == 1 ? "GUIA" : "GUIDE"), juce::String::fromUTF8 ("ガイド"));
+        r.removeFromTop (54);
+        g.setColour (psl::C::ink); g.setFont (psl::body (14.0f));
+        g.drawFittedText (T (sHelpText), r.reduced (28, 20).toNearestInt(), juce::Justification::topLeft, 40, 1.0f);
+        psl::tech (g, T (sFooter), r.reduced (30, 12), psl::C::grey, juce::Justification::bottomRight, 9);
     }
     void mouseDown (const juce::MouseEvent&) override { setVisible (false); }
 };
@@ -35,16 +47,12 @@ struct LicencePanel : juce::Component
         for (auto* t : { &email, &key })
         {
             addAndMakeVisible (*t);
-            t->setFont (F (15.0f, false));
-            t->setColour (juce::TextEditor::backgroundColourId, juce::Colour (0xff070917));
-            t->setColour (juce::TextEditor::outlineColourId, Theme::line().brighter (0.3f));
-            t->setColour (juce::TextEditor::focusedOutlineColourId, Theme::cyan());
-            t->setColour (juce::TextEditor::textColourId, Theme::text());
+            t->setFont (psl::mono (14));
         }
         key.setMultiLine (true); key.setReturnKeyStartsNewLine (false);
         for (auto* b : { &buy, &activate, &close }) addAndMakeVisible (*b);
-        buy.setColour (juce::TextButton::buttonOnColourId, Theme::gold()); buy.setToggleState (true, juce::dontSendNotification);
-        activate.setColour (juce::TextButton::buttonOnColourId, Theme::cyan()); activate.setToggleState (true, juce::dontSendNotification);
+        buy.setColour (juce::TextButton::buttonOnColourId, psl::C::cyan); buy.setToggleState (true, juce::dontSendNotification);
+        activate.setColour (juce::TextButton::buttonOnColourId, psl::C::ink); activate.setColour (juce::TextButton::textColourOnId, psl::C::paper); activate.setToggleState (true, juce::dontSendNotification);
         close.setColour (juce::TextButton::buttonOnColourId, Theme::cyan());
         buy.onClick = [] { juce::URL (kBuyUrl).launchInDefaultBrowser(); };
         activate.onClick = [this]
@@ -66,31 +74,25 @@ struct LicencePanel : juce::Component
     juce::Rectangle<int> box() const { return getLocalBounds().withSizeKeepingCentre (juce::jmin (640, getWidth() - 40), juce::jmin (520, getHeight() - 40)); }
     void paint (juce::Graphics& g) override
     {
-        g.fillAll (juce::Colour (0xe6040512));
+        using namespace psl;
+        g.fillAll (C::ink.withAlpha (0.93f));
         auto r = box().toFloat();
-        g.setColour (Theme::panel()); g.fillRoundedRectangle (r, 16.0f);
-        g.setColour (Theme::gold().withAlpha (0.7f)); g.drawRoundedRectangle (r, 16.0f, 1.5f);
-        auto in = r.reduced (28, 22);
-        g.setColour (Theme::text()); g.setFont (F (22.0f));
-        g.drawText (T2 (xLicTitle), in.removeFromTop (32).toNearestInt(), juce::Justification::centredLeft);
+        paperSheet (g, r, "CST-LIC // 30D TRIAL", T2 (xLicTitle), juce::String::fromUTF8 ("ライセンス"));
+        auto in = r.reduced (26, 0); in.removeFromTop (66);
         auto& L = ConstellationProcessor::licence();
-        g.setFont (F (13.0f));
-        g.setColour (L.licensed ? Theme::cyan() : (L.expired() ? Theme::danger() : Theme::gold()));
-        const auto st = L.licensed ? T2 (xLicensed) + ": " + L.owner
-                                   : (L.expired() ? T2 (xExpired) : T2 (xTrial).replace ("%d", juce::String (L.daysLeft.load())));
-        g.drawText (st, in.removeFromTop (22).toNearestInt(), juce::Justification::centredLeft);
-        g.setColour (Theme::text().withAlpha (0.85f)); g.setFont (F (13.5f, false));
+        auto st = in.removeFromTop (24);
+        g.setColour (L.licensed ? C::green : (L.expired() ? C::orange : C::ink)); g.fillRect (st.withWidth (12).reduced (0, 6));
+        text (g, upper (L.licensed ? T2 (xLicensed) + ": " + L.owner : (L.expired() ? T2 (xExpired) : T2 (xTrial).replace ("%d", juce::String (L.daysLeft.load())))),
+              st.withTrimmedLeft (20), ui (14), C::ink);
+        g.setColour (C::ink); g.setFont (body (14));
         g.drawFittedText (T2 (xLicText).replace ("%s", kPrice), in.removeFromTop (118).toNearestInt(), juce::Justification::topLeft, 12, 1.0f);
         if (status.isNotEmpty())
-        {
-            g.setColour (ok ? Theme::cyan() : Theme::danger()); g.setFont (F (13.0f));
-            g.drawFittedText (status, box().reduced (28, 22).removeFromBottom (64).removeFromTop (22), juce::Justification::centredLeft, 2);
-        }
+            text (g, status, box().toFloat().reduced (26, 20).removeFromBottom (64).removeFromTop (22), ui (13), ok ? juce::Colour (0xff0a7a45) : C::orange);
     }
     void resized() override
     {
-        auto in = box().reduced (28, 22);
-        in.removeFromTop (32 + 22 + 118 + 8);
+        auto in = box().reduced (26, 20);
+        in.removeFromTop (66 + 24 + 118 + 6);
         buy.setBounds (in.removeFromTop (40).removeFromLeft (260)); in.removeFromTop (14);
         email.setBounds (in.removeFromTop (34)); in.removeFromTop (8);
         key.setBounds (in.removeFromTop (70)); in.removeFromTop (10);
@@ -101,84 +103,6 @@ struct LicencePanel : juce::Component
     void mouseDown (const juce::MouseEvent& e) override { if (! box().contains (e.getPosition())) setVisible (false); }
 };
 } // namespace
-
-// ───────────────────────────── LookAndFeel ─────────────────────────────
-LookAndFeel::LookAndFeel()
-{
-    setColour (juce::ComboBox::backgroundColourId, Theme::panel());
-    setColour (juce::ComboBox::textColourId, Theme::text());
-    setColour (juce::ComboBox::outlineColourId, Theme::line());
-    setColour (juce::ComboBox::arrowColourId, Theme::cyan());
-    setColour (juce::PopupMenu::backgroundColourId, juce::Colour (0xff0a0d22));
-    setColour (juce::PopupMenu::textColourId, Theme::text());
-    setColour (juce::PopupMenu::highlightedBackgroundColourId, Theme::cyan().withAlpha (0.25f));
-    setColour (juce::TextButton::textColourOffId, Theme::text());
-    setColour (juce::TextButton::textColourOnId, juce::Colours::black);
-    setColour (juce::Label::textColourId, Theme::text());
-    setColour (juce::Slider::textBoxTextColourId, Theme::text());
-    setColour (juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
-    setColour (juce::Slider::textBoxBackgroundColourId, juce::Colours::transparentBlack);
-}
-
-void LookAndFeel::drawRotarySlider (juce::Graphics& g, int x, int y, int w, int h, float pos, float a0, float a1, juce::Slider& s)
-{
-    auto b = juce::Rectangle<float> ((float) x, (float) y, (float) w, (float) h).reduced (4.0f);
-    const float r = juce::jmin (b.getWidth(), b.getHeight()) * 0.5f;
-    const auto c = b.getCentre();
-    const auto col = s.findColour (juce::Slider::rotarySliderFillColourId);
-    juce::Path bg; bg.addCentredArc (c.x, c.y, r - 3, r - 3, 0, a0, a1, true);
-    g.setColour (Theme::line()); g.strokePath (bg, juce::PathStrokeType (4.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
-    const bool bipolar = s.getMinimum() < 0 && s.getMaximum() > 0;
-    const float zeroPos = bipolar ? (float) ((0 - s.getMinimum()) / (s.getMaximum() - s.getMinimum())) : 0.0f;
-    const float aStart = a0 + zeroPos * (a1 - a0), aVal = a0 + pos * (a1 - a0);
-    juce::Path arc; arc.addCentredArc (c.x, c.y, r - 3, r - 3, 0, juce::jmin (aStart, aVal), juce::jmax (aStart, aVal), true);
-    g.setColour (col.withAlpha (0.25f)); g.strokePath (arc, juce::PathStrokeType (9.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
-    g.setColour (col); g.strokePath (arc, juce::PathStrokeType (4.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
-    const float ir = r * 0.62f;
-    juce::ColourGradient grad (juce::Colour (0xff1d2450), c.x, c.y - ir, juce::Colour (0xff070917), c.x, c.y + ir, false);
-    g.setGradientFill (grad); g.fillEllipse (c.x - ir, c.y - ir, ir * 2, ir * 2);
-    g.setColour (Theme::line().brighter (0.3f)); g.drawEllipse (c.x - ir, c.y - ir, ir * 2, ir * 2, 1.0f);
-    const auto tip = c.getPointOnCircumference (ir * 0.78f, aVal);
-    g.setColour (col.withAlpha (0.35f)); g.fillEllipse (tip.x - 5, tip.y - 5, 10, 10);
-    g.setColour (juce::Colours::white); g.fillEllipse (tip.x - 2.5f, tip.y - 2.5f, 5, 5);
-}
-
-void LookAndFeel::drawLinearSlider (juce::Graphics& g, int x, int y, int w, int h, float pos, float, float, juce::Slider::SliderStyle, juce::Slider& s)
-{
-    const auto col = s.findColour (juce::Slider::trackColourId);
-    const float cy = (float) y + (float) h * 0.5f;
-    g.setColour (Theme::line()); g.fillRoundedRectangle ((float) x, cy - 3, (float) w, 6, 3);
-    g.setColour (col.withAlpha (0.85f)); g.fillRoundedRectangle ((float) x, cy - 3, pos - (float) x, 6, 3);
-    g.setColour (col.withAlpha (0.3f)); g.fillEllipse (pos - 9, cy - 9, 18, 18);
-    g.setColour (juce::Colours::white); g.fillEllipse (pos - 5, cy - 5, 10, 10);
-}
-
-void LookAndFeel::drawButtonBackground (juce::Graphics& g, juce::Button& b, const juce::Colour&, bool over, bool down)
-{
-    auto r = b.getLocalBounds().toFloat().reduced (1.0f);
-    const auto acc = b.findColour (juce::TextButton::buttonOnColourId);
-    if (b.getToggleState())
-    {
-        juce::ColourGradient gr (acc.brighter (0.2f), r.getX(), r.getY(), acc.darker (0.2f), r.getX(), r.getBottom(), false);
-        g.setGradientFill (gr); g.fillRoundedRectangle (r, 7.0f);
-        g.setColour (acc.withAlpha (0.4f)); g.drawRoundedRectangle (r.expanded (1.0f), 8.0f, 2.0f);
-    }
-    else
-    {
-        g.setColour (Theme::panel().brighter (over ? 0.25f : 0.08f).darker (down ? 0.3f : 0.0f)); g.fillRoundedRectangle (r, 7.0f);
-        g.setColour (over ? acc.withAlpha (0.7f) : Theme::line().brighter (0.2f)); g.drawRoundedRectangle (r, 7.0f, 1.0f);
-    }
-}
-
-void LookAndFeel::drawComboBox (juce::Graphics& g, int w, int h, bool, int, int, int, int, juce::ComboBox& cb)
-{
-    auto r = juce::Rectangle<float> (0, 0, (float) w, (float) h).reduced (1.0f);
-    g.setColour (Theme::panel().brighter (cb.isMouseOver() ? 0.2f : 0.06f)); g.fillRoundedRectangle (r, 7.0f);
-    g.setColour (cb.isMouseOver() ? Theme::cyan().withAlpha (0.7f) : Theme::line().brighter (0.2f)); g.drawRoundedRectangle (r, 7.0f, 1.0f);
-    juce::Path tri; const float ax = (float) w - 16, ay = (float) h * 0.5f;
-    tri.addTriangle (ax - 4, ay - 2, ax + 4, ay - 2, ax, ay + 3);
-    g.setColour (Theme::cyan()); g.fillPath (tri);
-}
 
 // ───────────────────────────── SkyView ─────────────────────────────
 SkyView::SkyView (ConstellationProcessor& p) : proc (p)
@@ -231,21 +155,17 @@ void SkyView::fit()
 void SkyView::drawBackground (juce::Graphics& g)
 {
     const float w = (float) getWidth(), h = (float) getHeight();
-    juce::ColourGradient bg (juce::Colour (0xff070a1c), 0, 0, juce::Colour (0xff02030a), 0, h, false);
-    g.setGradientFill (bg); g.fillAll();
-    auto neb = [&] (float cx, float cy, float rad, juce::Colour c)
-    {
-        juce::ColourGradient gr (c, cx, cy, c.withAlpha (0.0f), cx + rad, cy, true);
-        g.setGradientFill (gr); g.fillEllipse (cx - rad, cy - rad, rad * 2, rad * 2);
-    };
-    neb (w * (0.25f + 0.04f * std::sin (time * 0.07f)), h * 0.30f, w * 0.38f, juce::Colour (0x2a7a2cff));
-    neb (w * (0.78f + 0.03f * std::cos (time * 0.05f)), h * 0.62f, w * 0.34f, juce::Colour (0x22ff3fbf));
-    neb (w * 0.55f, h * (0.18f + 0.03f * std::sin (time * 0.09f)), w * 0.25f, juce::Colour (0x1a2fe0ff));
+    g.fillAll (psl::C::ink);
+    psl::dotGrid (g, getLocalBounds().toFloat(), 16.0f, psl::C::ink3);
+    g.setColour (psl::C::rule);
+    for (float x = 0; x < w; x += 80) { g.fillRect (x, 0.0f, 1.0f, 6.0f); g.fillRect (x, h - 6.0f, 1.0f, 6.0f); psl::tech (g, juce::String ((int) x).paddedLeft ('0', 4), { x + 3, h - 14, 40, 10 }, psl::C::rule, juce::Justification::centredLeft, 8); }
+    for (float y = 0; y < h; y += 80) { g.fillRect (0.0f, y, 6.0f, 1.0f); g.fillRect (w - 6.0f, y, 6.0f, 1.0f); }
     for (auto& s : bgStars)
     {
-        const float tw = 0.45f + 0.55f * std::sin (time * (0.6f + s.s) + s.ph);
-        g.setColour (juce::Colours::white.withAlpha (0.12f + 0.35f * tw * (s.s / 1.8f)));
-        g.fillEllipse (s.x * w, s.y * h, s.s, s.s);
+        const bool on = std::sin (time * (0.6f + s.s) + s.ph) > 0.1f;
+        g.setColour (psl::C::paper.withAlpha (on ? 0.5f : 0.15f));
+        const float x = s.x * w, y = s.y * h;
+        if (s.s > 1.65f) { g.fillRect (x - 3, y, 7.0f, 1.0f); g.fillRect (x, y - 3, 1.0f, 7.0f); } else g.fillRect (x, y, 1.0f, 1.0f);
     }
 }
 
@@ -256,7 +176,7 @@ void SkyView::drawGrid (juce::Graphics& g)
         auto a = project (ax, ay, az), b = project (bx, by, bz);
         g.setColour (c); g.drawLine (a.x, a.y, b.x, b.y, th);
     };
-    const auto gc = Theme::cyan().withAlpha (0.09f);
+    const auto gc = psl::C::paper.withAlpha (0.10f);
     for (int i = 0; i <= 8; ++i)
     {
         const float t = -1.0f + 0.25f * (float) i;
@@ -264,12 +184,11 @@ void SkyView::drawGrid (juce::Graphics& g)
         seg (-1, -1, t, 1, -1, t, gc, 1.0f);
         if (view != vTop) { seg (t, -1, 1, t, 1, 1, gc.withMultipliedAlpha (0.5f), 1.0f); seg (-1, t, 1, 1, t, 1, gc.withMultipliedAlpha (0.5f), 1.0f); }
     }
-    const auto ec = Theme::cyan().withAlpha (0.22f);
+    const auto ec = psl::C::paper.withAlpha (0.35f);
     for (float x : { -1.0f, 1.0f }) for (float z : { -1.0f, 1.0f }) seg (x, -1, z, x, 1, z, ec.withMultipliedAlpha (0.5f), 1.0f);
     for (float y : { -1.0f, 1.0f }) { seg (-1, y, -1, 1, y, -1, ec, 1.2f); seg (-1, y, 1, 1, y, 1, ec, 1.0f); seg (-1, y, -1, -1, y, 1, ec, 1.0f); seg (1, y, -1, 1, y, 1, ec, 1.0f); }
 
-    g.setFont (F (11.0f)); g.setColour (Theme::dim());
-    auto lab = [&] (const juce::String& s, float x, float y, float z) { auto pp = project (x, y, z); g.drawText (s, (int) pp.x - 40, (int) pp.y - 8, 80, 16, juce::Justification::centred); };
+    auto lab = [&] (const juce::String& s, float x, float y, float z) { auto pp = project (x, y, z); psl::tech (g, s, { pp.x - 60, pp.y - 6, 120, 12 }, psl::C::cyan, juce::Justification::centred, 9); };
     const bool es = Registry::get().globals.lang.load() == 1;
     lab ("L", -1.12f, -1.0f, -1.0f); lab ("R", 1.12f, -1.0f, -1.0f);
     if (view != vFront) { lab (es ? "CERCA" : "NEAR", 0, -1.0f, -1.12f); lab (es ? "LEJOS" : "FAR", 0, -1.0f, 1.12f); }
@@ -282,76 +201,72 @@ void SkyView::drawStar (juce::Graphics& g, int slot, const P& pp, bool fresh)
     const auto col = juce::Colour (s.colour);
     const float lv = sat01 ((s.levelDb.get() + 48.0f) / 48.0f);
     const bool muted = s.val[pMute].get() > 0.5f;
-    const float alpha = ! fresh ? 0.28f : (muted ? 0.35f : 1.0f);
-    const float r = (6.5f + 12.0f * lv) * juce::jlimit (0.55f, 1.6f, pp.scale);
+    const float alpha = ! fresh ? 0.3f : (muted ? 0.4f : 1.0f);
+    const float sc = juce::jlimit (0.6f, 1.5f, pp.scale);
+    const float r = (5.0f + 9.0f * lv) * sc;
     const float w = s.val[pWidth].get();
 
-    // floor shadow + drop line (3D)
-    if (view == v3D)
+    if (view == v3D)   // drop line to the floor + floor tick
     {
-        const float x = s.val[pX].get(), z = toWZ (s.val[pZ].get());
-        auto fl = project (x, -1.0f, z);
-        g.setColour (col.withAlpha (0.18f * alpha)); g.drawLine (pp.x, pp.y, fl.x, fl.y, 1.0f);
-        g.fillEllipse (fl.x - r * (0.8f + w * 0.5f), fl.y - r * 0.25f, r * (1.6f + w), r * 0.5f);
+        auto fl = project (s.val[pX].get(), -1.0f, toWZ (s.val[pZ].get()));
+        juce::Path dl; dl.startNewSubPath (pp.x, pp.y); dl.lineTo (fl.x, fl.y);
+        juce::Path dd; const float d[] = { 2, 3 }; juce::PathStrokeType (1.0f).createDashedStroke (dd, dl, d, 2);
+        g.setColour (col.withAlpha (0.5f * alpha)); g.fillPath (dd);
+        g.fillRect (fl.x - r * (0.6f + w * 0.5f), fl.y - 1, r * (1.2f + w), 2.0f);
     }
-    // glow
-    const float gw = r * 3.0f * (0.8f + 0.45f * w), gh = r * 2.6f;
-    juce::ColourGradient glow (col.withAlpha ((0.25f + 0.4f * lv) * alpha), pp.x, pp.y, col.withAlpha (0.0f), pp.x + gw, pp.y, true);
-    g.setGradientFill (glow); g.fillEllipse (pp.x - gw, pp.y - gh, gw * 2, gh * 2);
-
-    // spectral corona (10 bands) with unmask cuts in red
+    // width bracket
+    const float bw = r * (1.6f + 1.4f * w);
+    g.setColour (col.withAlpha (0.6f * alpha));
+    g.fillRect (pp.x - bw, pp.y - r - 4, 1.0f, r * 2 + 8); g.fillRect (pp.x + bw, pp.y - r - 4, 1.0f, r * 2 + 8);
+    g.fillRect (pp.x - bw, pp.y - r - 4, 4.0f, 1.0f); g.fillRect (pp.x + bw - 3, pp.y - r - 4, 4.0f, 1.0f);
+    g.fillRect (pp.x - bw, pp.y + r + 4, 4.0f, 1.0f); g.fillRect (pp.x + bw - 3, pp.y + r + 4, 4.0f, 1.0f);
+    // spectral ticks (10 bands) + unmask cuts
     for (int b = 0; b < kBands; ++b)
     {
-        const float ang = -kPi * 0.5f + (float) b / (float) kBands * 2.0f * kPi + time * 0.05f;
+        const float ang = -kPi * 0.5f + (float) b / (float) kBands * 2.0f * kPi;
         const float e = sat01 ((s.bandDb[(size_t) b].get() + 60.0f) / 52.0f);
-        const float r0 = r * 1.15f, r1 = r0 + r * (0.2f + 1.5f * e);
+        const float r0 = r + 4.0f, r1 = r0 + 3.0f + r * 1.3f * e;
         const float cx = std::cos (ang), sy = std::sin (ang);
-        g.setColour (col.brighter (0.4f).withAlpha (0.55f * alpha * (0.3f + 0.7f * e)));
-        g.drawLine (pp.x + cx * r0, pp.y + sy * r0, pp.x + cx * r1, pp.y + sy * r1, juce::jmax (1.2f, r * 0.16f));
+        g.setColour (col.withAlpha (alpha * (0.35f + 0.65f * e)));
+        g.drawLine (pp.x + cx * r0, pp.y + sy * r0, pp.x + cx * r1, pp.y + sy * r1, 2.0f);
         const float c = -s.cutDb[(size_t) b].get() / 9.0f;
-        if (c > 0.04f)
-        {
-            g.setColour (Theme::danger().withAlpha (alpha * (0.4f + 0.6f * c)));
-            g.drawLine (pp.x + cx * r1, pp.y + sy * r1, pp.x + cx * (r1 + r * c * 0.9f), pp.y + sy * (r1 + r * c * 0.9f), juce::jmax (1.5f, r * 0.2f));
-        }
+        if (c > 0.04f) { g.setColour (psl::C::magenta.withAlpha (alpha)); g.drawLine (pp.x + cx * r1, pp.y + sy * r1, pp.x + cx * (r1 + 2 + r * c), pp.y + sy * (r1 + 2 + r * c), 3.0f); }
     }
-    // twinkle cross
-    const float fl = r * (1.6f + 2.4f * lv);
-    g.setColour (juce::Colours::white.withAlpha (0.35f * alpha * lv));
-    g.drawLine (pp.x - fl, pp.y, pp.x + fl, pp.y, 1.0f); g.drawLine (pp.x, pp.y - fl * 0.7f, pp.x, pp.y + fl * 0.7f, 1.0f);
-    // core
-    juce::ColourGradient core (juce::Colours::white.withAlpha (alpha), pp.x, pp.y, col.withAlpha (alpha), pp.x + r, pp.y, true);
-    g.setGradientFill (core); g.fillEllipse (pp.x - r, pp.y - r, r * 2, r * 2);
-    if (muted) { g.setColour (Theme::bg().withAlpha (0.6f)); g.fillEllipse (pp.x - r * 0.6f, pp.y - r * 0.6f, r * 1.2f, r * 1.2f); }
-
+    // body: flat square + crosshair
+    g.setColour (col.withAlpha (alpha)); g.fillRect (pp.x - r, pp.y - r, r * 2, r * 2);
+    g.setColour (psl::C::ink.withAlpha (alpha)); g.fillRect (pp.x - r * 0.35f, pp.y - 0.5f, r * 0.7f, 1.0f); g.fillRect (pp.x - 0.5f, pp.y - r * 0.35f, 1.0f, r * 0.7f);
+    if (muted) psl::hatch (g, { pp.x - r, pp.y - r, r * 2, r * 2 }, psl::C::ink, 4);
     if (slot == selected)
     {
-        juce::Path ring; ring.addEllipse (pp.x - r * 2.0f, pp.y - r * 2.0f, r * 4.0f, r * 4.0f);
-        juce::Path dashed; const float d[] = { 6.0f, 5.0f };
-        juce::PathStrokeType (1.6f).createDashedStroke (dashed, ring, d, 2, juce::AffineTransform::rotation (time * 0.6f, pp.x, pp.y));
-        g.setColour (Theme::gold()); g.fillPath (dashed);
+        const float q = r + 9 + 2 * std::sin (time * 3.0f);
+        g.setColour (psl::C::yellow);
+        for (int k = 0; k < 4; ++k)
+        {
+            const float sx = (k & 1) ? 1.0f : -1.0f, sy = (k & 2) ? 1.0f : -1.0f;
+            g.fillRect (pp.x + sx * q - (sx > 0 ? 8.0f : 0.0f), pp.y + sy * q - (sy > 0 ? 2.0f : 0.0f), 8.0f, 2.0f);
+            g.fillRect (pp.x + sx * q - (sx > 0 ? 2.0f : 0.0f), pp.y + sy * q - (sy > 0 ? 8.0f : 0.0f), 2.0f, 8.0f);
+        }
     }
-    else if (slot == hover)
-    {
-        g.setColour (juce::Colours::white.withAlpha (0.35f)); g.drawEllipse (pp.x - r * 1.8f, pp.y - r * 1.8f, r * 3.6f, r * 3.6f, 1.0f);
-    }
+    else if (slot == hover) { g.setColour (psl::C::paper.withAlpha (0.6f)); g.drawRect (pp.x - r - 6, pp.y - r - 6, r * 2 + 12, r * 2 + 12, 1.0f); }
 
-    // label
-    g.setFont (F (12.0f));
-    juce::String lbl = s.name + "  P" + juce::String ((int) std::round (s.val[pPriority].get()));
-    if (! fresh) lbl << "  (" << T (sSleeping) << ")";
-    int ly = (int) (pp.y + r * 2.1f + 2);
-    juce::Rectangle<int> lr ((int) pp.x - 90, ly, 180, 16);
+    // label tag: colour block + mono caps
+    juce::String lbl = psl::upper (s.name) + "  P" + juce::String ((int) std::round (s.val[pPriority].get()));
+    if (! fresh) lbl << "  (" << psl::upper (T (sSleeping)) << ")";
+    const auto f = psl::mono (10.0f, true);
+    const float tw = juce::GlyphArrangement::getStringWidth (f, lbl) + 12;
+    int ly = (int) (pp.y + r + 10);
+    juce::Rectangle<int> lr ((int) (pp.x - tw * 0.5f), ly, (int) tw, 15);
     for (int guard = 0; guard < 6; ++guard)
     {
         bool hit = false;
-        for (auto& u : labelRects) if (u.intersects (lr.reduced (30, 0))) { hit = true; break; }
+        for (auto& u : labelRects) if (u.intersects (lr)) { hit = true; break; }
         if (! hit) break;
-        lr = lr.translated (0, 15); ly += 15;
+        lr = lr.translated (0, 17);
     }
     labelRects.push_back (lr);
-    g.setColour (juce::Colours::black.withAlpha (0.55f)); g.drawText (lbl, (int) pp.x - 90 + 1, ly + 1, 180, 16, juce::Justification::centred);
-    g.setColour (Theme::text().withAlpha (alpha)); g.drawText (lbl, (int) pp.x - 90, ly, 180, 16, juce::Justification::centred);
+    g.setColour (psl::C::ink.withAlpha (0.85f * alpha)); g.fillRect (lr);
+    g.setColour (col.withAlpha (alpha)); g.fillRect (lr.withWidth (4));
+    psl::text (g, lbl, lr.toFloat().withTrimmedLeft (8), f, psl::C::paper.withAlpha (alpha));
 }
 
 void SkyView::paint (juce::Graphics& g)
@@ -376,17 +291,17 @@ void SkyView::paint (juce::Graphics& g)
             {
                 const float a = sp.az * kPi / 180.0f;
                 auto q = project (std::sin (a) * 1.25f, yy, lz + std::cos (a) * 1.25f);
-                g.setColour (Theme::gold().withAlpha (0.75f)); g.fillRoundedRectangle (q.x - 7, q.y - 5, 14, 10, 2);
-                g.setColour (Theme::bg()); g.fillEllipse (q.x - 3, q.y - 3, 6, 6);
+                g.setColour (psl::C::paper); g.fillRect (q.x - 6, q.y - 6, 12.0f, 12.0f);
+                g.setColour (psl::C::ink); g.fillRect (q.x - 2, q.y - 2, 4.0f, 4.0f);
             };
             for (auto& sp : sl.ear) drawSpk (sp, -0.15f);
             for (auto& sp : sl.top) drawSpk (sp, 0.85f);
         }
-        juce::ColourGradient hg (Theme::cyan().withAlpha (0.35f), hp.x, hp.y, Theme::cyan().withAlpha (0.0f), hp.x + hr * 3, hp.y, true);
-        g.setGradientFill (hg); g.fillEllipse (hp.x - hr * 3, hp.y - hr * 3, hr * 6, hr * 6);
-        g.setColour (Theme::cyan()); g.drawEllipse (hp.x - hr, hp.y - hr, hr * 2, hr * 2, 1.6f);
-        auto nose = project (0, -0.15f, lz + 0.13f);
-        g.drawLine (hp.x, hp.y, nose.x, nose.y, 1.6f);
+        g.setColour (psl::C::yellow); g.drawEllipse (hp.x - hr, hp.y - hr, hr * 2, hr * 2, 2.0f);
+        g.fillRect (hp.x - 2, hp.y - 2, 4.0f, 4.0f);
+        auto nose = project (0, -0.15f, lz + 0.16f);
+        g.drawLine (hp.x, hp.y, nose.x, nose.y, 2.0f);
+        psl::tech (g, "LSTNR", { hp.x + hr + 4, hp.y - 6, 60, 12 }, psl::C::yellow, juce::Justification::centredLeft, 8.5f);
         if (reg.globals.binaural.load())
         {
             juce::Path ph; ph.addCentredArc (hp.x, hp.y, hr * 1.5f, hr * 1.5f, 0, -1.2f, 1.2f, true);
@@ -415,11 +330,12 @@ void SkyView::paint (juce::Graphics& g)
             P pa {}, pb {};
             for (auto& d : drawn) { if (d.first == live[i]) pa = d.second; if (d.first == live[j]) pb = d.second; }
             const float pulse = 0.6f + 0.4f * std::sin (time * 5.0f + (float) i);
-            g.setColour (Theme::danger().withAlpha (0.18f + 0.55f * a * pulse));
-            g.drawLine (pa.x, pa.y, pb.x, pb.y, 1.0f + 3.0f * a);
+            juce::Path ln; ln.startNewSubPath (pa.x, pa.y); ln.lineTo (pb.x, pb.y);
+            juce::Path dd; const float dsh[] = { 6, 4 }; juce::PathStrokeType (1.0f + 2.5f * a).createDashedStroke (dd, ln, dsh, 2);
+            g.setColour (psl::C::orange.withAlpha (0.35f + 0.6f * a * pulse)); g.fillPath (dd);
             const float t = std::fmod (time * 0.6f + 0.17f * (float) (i + j), 1.0f);
-            g.setColour (juce::Colour (0xffffc2a0).withAlpha (0.8f * a));
-            g.fillEllipse (pa.x + (pb.x - pa.x) * t - 2.5f, pa.y + (pb.y - pa.y) * t - 2.5f, 5, 5);
+            g.setColour (psl::C::orange); g.fillRect (pa.x + (pb.x - pa.x) * t - 3.0f, pa.y + (pb.y - pa.y) * t - 3.0f, 6.0f, 6.0f);
+            psl::tech (g, "CLASH " + juce::String (juce::roundToInt (m * 100)), { (pa.x + pb.x) * 0.5f - 30, (pa.y + pb.y) * 0.5f - 14, 60, 10 }, psl::C::orange, juce::Justification::centred, 8);
         }
 
     std::sort (drawn.begin(), drawn.end(), [] (auto& a, auto& b) { return a.second.depth > b.second.depth; });
@@ -429,9 +345,8 @@ void SkyView::paint (juce::Graphics& g)
     if (reg.globals.binaural.load())
     {
         auto bar = getLocalBounds().removeFromTop (30).reduced (juce::jmax (10, getWidth() / 2 - 330), 4).toFloat();
-        g.setColour (Theme::pink().withAlpha (0.22f)); g.fillRoundedRectangle (bar, 8.0f);
-        g.setColour (Theme::pink()); g.drawRoundedRectangle (bar, 8.0f, 1.0f);
-        g.setFont (F (11.5f)); g.drawFittedText (T2 (xPhonesWarn), bar.reduced (8, 0).toNearestInt(), juce::Justification::centred, 1, 0.8f);
+        g.setColour (psl::C::magenta); g.fillRect (bar);
+        g.setColour (psl::C::ink); g.setFont (psl::ui (12.5f)); g.drawFittedText (psl::upper (T2 (xPhonesWarn)), bar.reduced (8, 0).toNearestInt(), juce::Justification::centred, 1, 0.7f);
     }
 
     if (drawn.empty())
@@ -523,8 +438,8 @@ void SkyView::mouseWheelMove (const juce::MouseEvent& e, const juce::MouseWheelD
 void BandMeter::paint (juce::Graphics& g)
 {
     auto r = getLocalBounds().toFloat();
-    g.setColour (Theme::bg().withAlpha (0.6f)); g.fillRoundedRectangle (r, 8.0f);
-    g.setColour (Theme::line()); g.drawRoundedRectangle (r, 8.0f, 1.0f);
+    g.setColour (Theme::bg().withAlpha (0.6f)); g.fillRect (r);
+    g.setColour (Theme::line()); g.drawRect (r, 1.0f);
     if (slot < 0) return;
     auto& s = Registry::get().slot (slot);
     const auto col = juce::Colour (s.colour);
@@ -536,26 +451,24 @@ void BandMeter::paint (juce::Graphics& g)
         const float e = sat01 ((s.bandDb[(size_t) b].get() + 60.0f) / 56.0f);
         const float x = inner.getX() + bw * (float) b + 2;
         const float hBar = inner.getHeight() * e;
-        juce::ColourGradient gr (col, x, inner.getBottom(), col.brighter (0.6f), x, inner.getY(), false);
-        g.setGradientFill (gr); g.fillRoundedRectangle (x, inner.getBottom() - hBar, bw - 4, hBar, 2);
+        psl::segBar (g, { x, inner.getY(), bw - 4, inner.getHeight() }, e, col, psl::C::ink3, 14);
+        juce::ignoreUnused (hBar);
         const float c = sat01 (-s.cutDb[(size_t) b].get() / 9.0f);
-        if (c > 0.01f) { g.setColour (Theme::danger().withAlpha (0.85f)); g.fillRoundedRectangle (x, inner.getY(), bw - 4, inner.getHeight() * c * 0.5f, 2); }
+        if (c > 0.01f) { g.setColour (Theme::danger().withAlpha (0.85f)); g.fillRect (x, inner.getY(), bw - 4, inner.getHeight() * c * 0.5f); }
         g.setColour (Theme::dim()); g.setFont (F (9.0f, false));
         g.drawText (lab[b], (int) x - 4, (int) inner.getBottom() + 2, (int) bw + 4, 12, juce::Justification::centred);
     }
-    g.setColour (Theme::dim()); g.setFont (F (10.0f));
-    g.drawText (T (sBands) + "  /  " + T (sCuts), r.reduced (10, 3).toNearestInt(), juce::Justification::topLeft);
+    psl::tech (g, T (sBands) + " / " + T (sCuts), r.reduced (10, 3).withHeight (12), Theme::dim(), juce::Justification::centredLeft, 8.5f);
 }
 
 void MasterMeter::paint (juce::Graphics& g)
 {
     auto r = getLocalBounds().toFloat();
-    g.setColour (Theme::bg().withAlpha (0.6f)); g.fillRoundedRectangle (r, 8.0f);
-    g.setColour (Theme::line()); g.drawRoundedRectangle (r, 8.0f, 1.0f);
+    g.setColour (Theme::bg().withAlpha (0.6f)); g.fillRect (r);
+    g.setColour (Theme::line()); g.drawRect (r, 1.0f);
     const uint32_t now = juce::Time::getMillisecondCounter();
     int n = 0; for (int t = 0; t < kMaxStars; ++t) { auto& s = Registry::get().slot (t); if (s.fresh (now) && ! s.isSky.load()) ++n; }
-    g.setColour (Theme::gold()); g.setFont (F (20.0f));
-    g.drawText (juce::String (n), r.removeFromLeft (44).toNearestInt(), juce::Justification::centred);
+    psl::text (g, juce::String (n).paddedLeft ('0', 2), r.removeFromLeft (50), psl::display (34), Theme::gold(), juce::Justification::centred);
     g.setColour (Theme::dim()); g.setFont (F (10.0f));
     auto top = r.removeFromTop (r.getHeight() * 0.42f);
     g.drawText (T (sStarsOnline), top.toNearestInt(), juce::Justification::centredLeft);
@@ -564,8 +477,8 @@ void MasterMeter::paint (juce::Graphics& g)
     auto bar = [&] (float db, juce::Rectangle<float> b)
     {
         const float v = sat01 ((db + 60.0f) / 60.0f);
-        g.setColour (Theme::line()); g.fillRoundedRectangle (b, 2);
-        g.setColour (db > -1.0f ? Theme::danger() : Theme::cyan()); g.fillRoundedRectangle (b.withWidth (b.getWidth() * v), 2);
+        g.setColour (Theme::line()); g.fillRect (b);
+        g.setColour (db > -1.0f ? Theme::danger() : Theme::cyan()); g.fillRect (b.withWidth (b.getWidth() * v));
     };
     auto half = bars.removeFromLeft (bars.getWidth() * 0.55f);
     bar (proc.masterL.load(), half.removeFromTop (half.getHeight() * 0.5f).reduced (0, 2));
@@ -573,9 +486,9 @@ void MasterMeter::paint (juce::Graphics& g)
     const float c = juce::jlimit (-1.0f, 1.0f, proc.correlation.load());
     auto cr = bars.reduced (8, 2);
     g.setColour (Theme::dim()); g.drawText (T (sCorr), cr.removeFromLeft (30).toNearestInt(), juce::Justification::centredLeft);
-    g.setColour (Theme::line()); g.fillRoundedRectangle (cr.withSizeKeepingCentre (cr.getWidth(), 4), 2);
+    g.setColour (Theme::line()); g.fillRect (cr.withSizeKeepingCentre (cr.getWidth(), 4));
     const float cx = cr.getX() + (c + 1.0f) * 0.5f * cr.getWidth();
-    g.setColour (c < 0 ? Theme::danger() : Theme::gold()); g.fillEllipse (cx - 5, cr.getCentreY() - 5, 10, 10);
+    g.setColour (c < 0 ? Theme::danger() : Theme::gold()); g.fillRect (cx - 3, cr.getCentreY() - 7, 6.0f, 14.0f);
 }
 
 // ───────────────────────────── Editor ─────────────────────────────
@@ -594,8 +507,8 @@ ConstellationEditor::ConstellationEditor (ConstellationProcessor& p)
         b.setClickingTogglesState (toggle);
         addAndMakeVisible (b);
     };
-    tb (modeStar, Theme::cyan()); tb (modeSky, Theme::gold());
-    tb (view3D, Theme::cyan()); tb (viewTop, Theme::cyan()); tb (viewFront, Theme::cyan());
+    tb (modeStar, psl::C::paper); tb (modeSky, Theme::gold());
+    tb (view3D, psl::C::paper); tb (viewTop, psl::C::paper); tb (viewFront, psl::C::paper);
     tb (phones, Theme::pink()); tb (langBtn, Theme::cyan()); tb (helpBtn, Theme::gold());
     tb (applyStyle, Theme::cyan()); tb (untangleBtn, Theme::danger()); tb (monoBtn, Theme::gold());
     tb (muteBtn, Theme::dim()); tb (soloBtn, Theme::gold()); tb (storeBtn, Theme::danger());
@@ -715,8 +628,8 @@ ConstellationEditor::ConstellationEditor (ConstellationProcessor& p)
     select (proc.isSkyMode() ? -1 : proc.getSlot());
     refreshTexts();
     setResizable (true, true);
-    setResizeLimits (960, 620, 2200, 1400);
-    setSize (1200, 740);
+    setResizeLimits (1180, 660, 2200, 1400);
+    setSize (1300, 760);
     startTimerHz (30);
 }
 
@@ -862,51 +775,43 @@ void ConstellationEditor::timerCallback()
 
 void ConstellationEditor::paint (juce::Graphics& g)
 {
-    g.fillAll (Theme::bg());
-    auto r = getLocalBounds();
-    auto top = r.removeFromTop (56);
-    juce::ColourGradient tg (juce::Colour (0xff0d1233), 0, 0, juce::Colour (0xff070915), 0, 56, false);
-    g.setGradientFill (tg); g.fillRect (top);
-    g.setColour (Theme::line()); g.drawLine (0, 56, (float) getWidth(), 56, 1.0f);
-
-    // logo: polaris star
-    const float cx = 30, cy = 28;
-    juce::Path star;
-    for (int i = 0; i < 8; ++i)
-    {
-        const float a = (float) i * kPi / 4.0f - kPi / 2.0f, rr = (i % 2 == 0) ? 14.0f : 4.0f;
-        if (i == 0) star.startNewSubPath (cx + std::cos (a) * rr, cy + std::sin (a) * rr); else star.lineTo (cx + std::cos (a) * rr, cy + std::sin (a) * rr);
-    }
-    star.closeSubPath();
-    juce::ColourGradient sg (juce::Colours::white, cx, cy, Theme::gold(), cx + 14, cy, true);
-    g.setGradientFill (sg); g.fillPath (star);
-    g.setColour (Theme::text()); g.setFont (F (21.0f));
-    g.drawText ("CONSTELLATION", 52, 8, 260, 26, juce::Justification::centredLeft);
-    g.setColour (Theme::dim()); g.setFont (F (10.5f, false));
-    g.drawText (juce::String::fromUTF8 ("by Polaris Sound Lab  \xc2\xb7  v1.0.2"), 53, 32, 260, 14, juce::Justification::centredLeft);
+    using namespace psl;
+    const auto R = getLocalBounds().toFloat();
+    g.fillAll (C::ink);
+    // top band: flat cyan, condensed title, katakana, codes
+    g.setColour (C::cyan); g.fillRect (R.withHeight (56));
+    juce::Path star;   // 4-point polaris star, hard edges
+    const float cx = 26, cy = 28;
+    for (int i = 0; i < 8; ++i) { const float a = (float) i * kPi / 4.0f - kPi / 2.0f, rr = (i % 2 == 0) ? 17.0f : 4.0f; if (i == 0) star.startNewSubPath (cx + std::cos (a) * rr, cy + std::sin (a) * rr); else star.lineTo (cx + std::cos (a) * rr, cy + std::sin (a) * rr); }
+    star.closeSubPath(); g.setColour (C::ink); g.fillPath (star);
+    text (g, "CONSTELLATION", { 48, 3, 300, 50 }, display (42), C::ink);
+    const float tx = 52.0f + juce::GlyphArrangement::getStringWidth (display (42), "CONSTELLATION") + 8.0f;
+    text (g, juce::String::fromUTF8 ("コンステレーション"), { tx, 6, 140, 18 }, jp (12), C::ink);
+    tech (g, "3D.MIX // SURROUND", { tx, 24, 150, 12 }, C::ink, juce::Justification::centredLeft, 8);
+    tech (g, "PSL // V1.1.0", { tx, 36, 150, 12 }, C::ink, juce::Justification::centredLeft, 8);
+    g.setColour (C::ink); g.fillRect (0.0f, 56.0f, R.getWidth(), 2.0f);
 
     // right panel
-    auto panel = getLocalBounds().withTrimmedTop (56).removeFromRight (310).withTrimmedBottom (122);
-    g.setColour (Theme::panel()); g.fillRect (panel);
-    g.setColour (Theme::line()); g.drawLine ((float) panel.getX(), (float) panel.getY(), (float) panel.getX(), (float) panel.getBottom(), 1.0f);
+    auto panel = getLocalBounds().withTrimmedTop (58).removeFromRight (310).withTrimmedBottom (122).toFloat();
+    g.setColour (C::ink2); g.fillRect (panel);
+    g.setColour (C::rule); g.fillRect (panel.getX(), panel.getY(), 1.0f, panel.getHeight());
     if (selected >= 0)
     {
         const auto col = juce::Colour (Registry::get().slot (selected).colour);
-        const float sx = (float) panel.getX() + 26, sy = (float) panel.getY() + 30;
-        juce::ColourGradient cg (juce::Colours::white, sx, sy, col, sx + 11, sy, true);
-        g.setColour (col.withAlpha (0.25f)); g.fillEllipse (sx - 18, sy - 18, 36, 36);
-        g.setGradientFill (cg); g.fillEllipse (sx - 10, sy - 10, 20, 20);
+        g.setColour (col); g.fillRect (panel.getX() + 14, panel.getY() + 18, 22.0f, 22.0f);
+        g.setColour (C::ink); g.fillRect (panel.getX() + 24, panel.getY() + 22, 2.0f, 14.0f); g.fillRect (panel.getX() + 18, panel.getY() + 28, 14.0f, 2.0f);
     }
-    g.setColour (Theme::dim()); g.setFont (F (10.0f));
-    g.drawText (T (sRole), panel.getX() + 16, panel.getY() + 62, 60, 24, juce::Justification::centredLeft);
+    sectionTab (g, { panel.getX() + 14, panel.getY() + 2, panel.getWidth() - 28, 13 }, "01", proc.isSkyMode() ? T (sSelected) : T (sStar), juce::String::fromUTF8 ("星"), C::cyan);
+    tech (g, T (sRole), { panel.getX() + 14, panel.getY() + 62, 60, 24 }, C::grey, juce::Justification::centredLeft, 9);
 
-    // bottom
-    auto bottom = getLocalBounds().removeFromBottom (122);
-    juce::ColourGradient bg (juce::Colour (0xff0a0e26), 0, (float) bottom.getY(), juce::Colour (0xff05060f), 0, (float) getHeight(), false);
-    g.setGradientFill (bg); g.fillRect (bottom);
-    g.setColour (Theme::line()); g.drawLine (0, (float) bottom.getY(), (float) getWidth(), (float) bottom.getY(), 1.0f);
-    g.setColour (Theme::dim().withAlpha (0.8f)); g.setFont (F (10.5f, false));
-    g.drawText (T (sFooter), 14, getHeight() - 24, getWidth() - 360, 20, juce::Justification::centredLeft);
+    // bottom band
+    auto bottom = R.withTop (R.getBottom() - 122);
+    g.setColour (C::ink2); g.fillRect (bottom);
+    g.setColour (C::cyan); g.fillRect (bottom.withHeight (2));
+    auto foot = R.withTop (R.getBottom() - 24);
+    g.setColour (C::ink); g.fillRect (foot);
+    tech (g, T (sFooter), foot.reduced (14, 0).withTrimmedRight (330), C::grey, juce::Justification::centredLeft, 9);
+    barcode (g, { foot.getRight() - 470, foot.getY() + 6, 120, 12 }, 31, C::rule.brighter (0.4f));
 }
 
 void ConstellationEditor::paintOverChildren (juce::Graphics&) {}
@@ -920,17 +825,17 @@ void ConstellationEditor::resized()
 {
     const bool skyMode = proc.isSkyMode();
     auto r = getLocalBounds();
-    auto top = r.removeFromTop (56).reduced (8, 11);
-    top.removeFromLeft (260);
-    modeStar.setBounds (top.removeFromLeft (112)); top.removeFromLeft (4);
-    modeSky.setBounds (top.removeFromLeft (100)); top.removeFromLeft (18);
-    view3D.setBounds (top.removeFromLeft (48)); top.removeFromLeft (3);
-    viewTop.setBounds (top.removeFromLeft (70)); top.removeFromLeft (3);
-    viewFront.setBounds (top.removeFromLeft (72));
+    auto top = r.removeFromTop (58).reduced (8, 12);
+    top.removeFromLeft (440);
+    modeStar.setBounds (top.removeFromLeft (104)); top.removeFromLeft (4);
+    modeSky.setBounds (top.removeFromLeft (92)); top.removeFromLeft (10);
+    view3D.setBounds (top.removeFromLeft (40)); top.removeFromLeft (3);
+    viewTop.setBounds (top.removeFromLeft (60)); top.removeFromLeft (3);
+    viewFront.setBounds (top.removeFromLeft (66));
     helpBtn.setBounds (top.removeFromRight (34)); top.removeFromRight (5);
     langBtn.setBounds (top.removeFromRight (40)); top.removeFromRight (5);
-    phones.setBounds (top.removeFromRight (124)); top.removeFromRight (8);
-    room.setBounds (top.removeFromRight (160));
+    phones.setBounds (top.removeFromRight (116)); top.removeFromRight (6);
+    room.setBounds (top.removeFromRight (150));
     top.removeFromRight (8);
     if (top.getWidth() > 60) licBtn.setBounds (top.removeFromRight (juce::jmin (170, top.getWidth())));
     if (licPanel) licPanel->setBounds (getLocalBounds());

@@ -1,0 +1,19 @@
+{
+ "product": "CONSTELLATION",
+ "file": "Constellation",
+ "key": "#00a9e0",
+ "key2": "#ff2e88",
+ "kana": "コンステレーション",
+ "code": "PSL-CST",
+ "version": "1.1",
+ "cover_size": "66pt",
+ "cover_img": "plugin-sky.png",
+ "fig0": "SKY VIEW",
+ "tagline_en": "3D visual mixer & surround",
+ "tagline_es": "Mezclador visual 3D y surround",
+ "spec1": "3D STAR FIELD MIXER<br>SPECTRAL UNMASK<br>BINAURAL 3D PHONES<br>SURROUND → 7.1.4<br>ABLETON-FIRST / ANY DAW",
+ "spec2_en": "30-DAY FULL TRIAL<br>US$39 // BUNDLE US$69<br>OFFLINE LICENCE",
+ "spec2_es": "PRUEBA COMPLETA 30 DÍAS<br>US$39 // PAQUETE US$69<br>LICENCIA SIN INTERNET",
+ "claim_en": "MIX BY MOVING STARS",
+ "claim_es": "MEZCLA MOVIENDO ESTRELLAS"
+}

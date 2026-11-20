@@ -3,32 +3,21 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 #include "PluginProcessor.h"
 #include "Lang.h"
+#include "Design.h"
 
 namespace cst
 {
 struct Theme
 {
-    static juce::Colour bg()     { return juce::Colour (0xff05060f); }
-    static juce::Colour panel()  { return juce::Colour (0xff0b0f24); }
-    static juce::Colour line()   { return juce::Colour (0xff1c2550); }
-    static juce::Colour cyan()   { return juce::Colour (0xff58e1ff); }
-    static juce::Colour pink()   { return juce::Colour (0xffff4fd8); }
-    static juce::Colour gold()   { return juce::Colour (0xffffd166); }
-    static juce::Colour text()   { return juce::Colour (0xffe8ecff); }
-    static juce::Colour dim()    { return juce::Colour (0xff7c86b8); }
-    static juce::Colour danger() { return juce::Colour (0xffff5a4e); }
-};
-
-class LookAndFeel : public juce::LookAndFeel_V4
-{
-public:
-    LookAndFeel();
-    void drawRotarySlider (juce::Graphics&, int, int, int, int, float, float, float, juce::Slider&) override;
-    void drawLinearSlider (juce::Graphics&, int, int, int, int, float, float, float, juce::Slider::SliderStyle, juce::Slider&) override;
-    void drawButtonBackground (juce::Graphics&, juce::Button&, const juce::Colour&, bool, bool) override;
-    void drawComboBox (juce::Graphics&, int, int, bool, int, int, int, int, juce::ComboBox&) override;
-    juce::Font getComboBoxFont (juce::ComboBox&) override { return juce::Font (juce::FontOptions (13.0f, juce::Font::bold)); }
-    juce::Font getTextButtonFont (juce::TextButton&, int h) override { return juce::Font (juce::FontOptions (juce::jmin (13.0f, h * 0.5f), juce::Font::bold)); }
+    static juce::Colour bg()     { return psl::C::ink; }
+    static juce::Colour panel()  { return psl::C::ink2; }
+    static juce::Colour line()   { return psl::C::rule; }
+    static juce::Colour cyan()   { return psl::C::cyan; }
+    static juce::Colour pink()   { return psl::C::magenta; }
+    static juce::Colour gold()   { return psl::C::yellow; }
+    static juce::Colour text()   { return psl::C::paper; }
+    static juce::Colour dim()    { return psl::C::grey; }
+    static juce::Colour danger() { return psl::C::orange; }
 };
 
 class SkyView : public juce::Component
@@ -109,7 +98,7 @@ private:
     void knob (juce::Slider&, juce::Label&, int param, double lo, double hi, double def);
 
     ConstellationProcessor& proc;
-    cst::LookAndFeel lnf;
+    psl::FlatLnF lnf { psl::C::cyan };
     cst::SkyView sky;
     cst::BandMeter bands;
     cst::MasterMeter meter;

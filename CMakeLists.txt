@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(CONSTELLATION VERSION 1.0.2)
+project(CONSTELLATION VERSION 1.1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -43,8 +43,10 @@ target_compile_definitions(Constellation PUBLIC
   JUCE_VST3_CAN_REPLACE_VST2=0
   JUCE_DISPLAY_SPLASH_SCREEN=0)
 
+juce_add_binary_data(ConstellationFonts SOURCES Resources/fonts/Archivo-CondensedBlack.ttf Resources/fonts/Archivo-SemiCondBold.ttf Resources/fonts/Archivo-Regular.ttf Resources/fonts/NotoJP-Bold-sub.ttf Resources/fonts/SpaceMono-Regular.ttf Resources/fonts/SpaceMono-Bold.ttf)
+set_target_properties(ConstellationFonts PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(Constellation
-  PRIVATE juce::juce_audio_utils juce::juce_dsp juce::juce_cryptography
+  PRIVATE ConstellationFonts juce::juce_audio_utils juce::juce_dsp juce::juce_cryptography
   PUBLIC juce::juce_recommended_config_flags juce::juce_recommended_lto_flags juce::juce_recommended_warning_flags)
 
 option(CST_BUILD_TESTS "Build offline DSP test" OFF)
@@ -53,5 +55,5 @@ if(CST_BUILD_TESTS)
   target_sources(CstTest PRIVATE Tests/DspTest.cpp Source/PluginProcessor.cpp Source/PluginEditor.cpp)
   target_include_directories(CstTest PRIVATE Source)
   target_compile_definitions(CstTest PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 CST_TEST=1 JUCE_MODAL_LOOPS_PERMITTED=1)
-  target_link_libraries(CstTest PRIVATE juce::juce_audio_utils juce::juce_dsp juce::juce_cryptography juce::juce_recommended_config_flags)
+  target_link_libraries(CstTest PRIVATE ConstellationFonts juce::juce_audio_utils juce::juce_dsp juce::juce_cryptography juce::juce_recommended_config_flags)
 endif()

@@ -24,12 +24,12 @@ static float rms (const juce::AudioBuffer<float>& b, int ch)
 static void shot (juce::AudioProcessor& p, const char* file, std::function<void (ConstellationEditor&)> prep = {})
 {
     std::unique_ptr<juce::AudioProcessorEditor> ed (p.createEditor());
-    ed->setSize (1200, 740);
+    ed->setSize (1300, 760);
     auto* ce = dynamic_cast<ConstellationEditor*> (ed.get());
     for (int k = 0; k < 6; ++k) juce::MessageManager::getInstance()->runDispatchLoopUntil (40);
     if (prep && ce) prep (*ce);
     for (int k = 0; k < 4; ++k) juce::MessageManager::getInstance()->runDispatchLoopUntil (40);
-    juce::Image img (juce::Image::ARGB, 1200, 740, true);
+    juce::Image img (juce::Image::ARGB, 1300, 760, true);
     for (int k = 0; k < 30; ++k) { juce::Graphics g (img); ed->paintEntireComponent (g, true); }
     juce::File f (juce::String ("/home/claude/constellation/build/") + file); f.deleteFile();
     juce::FileOutputStream os (f); juce::PNGImageFormat().writeImageToStream (img, os);
@@ -118,6 +118,8 @@ int main()
             if (t == juce::AudioChannelSet::topFrontLeft || t == juce::AudioChannelSet::topFrontRight || t == juce::AudioChannelSet::topRearLeft || t == juce::AudioChannelSet::topRearRight) topE += e; else earE += e; }
         std::printf ("        7.1.4 elevated source: top=%.4f ear=%.4f\n", topE, earE);
         check (topE > earE, "elevated star goes to the height speakers");
+        reg.globals.wrap.set (0.75f);
+        shot (s, "surround_top.png", [] (ConstellationEditor& e) { for (auto* c : e.getChildren()) if (auto* b = dynamic_cast<juce::TextButton*> (c)) if (b->getButtonText().contains ("TOP")) b->triggerClick(); });
         reg.globals.wrap.set (0.0f);
     }
 
@@ -200,8 +202,8 @@ int main()
     // editor smoke test
     {
         std::unique_ptr<juce::AudioProcessorEditor> ed (sky.createEditor());
-        ed->setSize (1200, 740);
-        juce::Image img (juce::Image::ARGB, 1200, 740, true);
+        ed->setSize (1300, 760);
+        juce::Image img (juce::Image::ARGB, 1300, 760, true);
         juce::Graphics g (img);
         for (int k = 0; k < 3; ++k) { juce::MessageManager::getInstance()->runDispatchLoopUntil (60); }
         ed->paintEntireComponent (g, true);
@@ -232,10 +234,10 @@ int main()
         {
             reg.globals.lang.store (lang);
             std::unique_ptr<juce::AudioProcessorEditor> ed (s.createEditor());
-            ed->setSize (1200, 740);
+            ed->setSize (1300, 760);
             if (auto* sv = dynamic_cast<SkyView*> (ed->getChildComponent (0))) sv->setView (lang == 0 ? SkyView::vTop : SkyView::v3D);
             for (int k = 0; k < 12; ++k) juce::MessageManager::getInstance()->runDispatchLoopUntil (40);
-            juce::Image img (juce::Image::ARGB, 1200, 740, true); for (int k = 0; k < 40; ++k) { juce::Graphics g (img); ed->paintEntireComponent (g, true); }
+            juce::Image img (juce::Image::ARGB, 1300, 760, true); for (int k = 0; k < 40; ++k) { juce::Graphics g (img); ed->paintEntireComponent (g, true); }
             juce::File f (juce::String ("/home/claude/constellation/build/star_") + (lang ? "es" : "en") + ".png"); f.deleteFile();
             juce::FileOutputStream os (f); juce::PNGImageFormat().writeImageToStream (img, os);
         }
