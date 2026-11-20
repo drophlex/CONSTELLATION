@@ -70,7 +70,7 @@ inline juce::String T (int key) { return juce::String::fromUTF8 (tr (key)); }
 enum S2
 {
     xExport, xRec, xArmed, xRecording, xSaved, xMasterHint, xTrial, xBuy, xLicensed, xLicTitle, xLicText,
-    xEmail, xKey, xActivate, xActOk, xActBad, xExpired, xClose, xHaveKey, kNumStrings2
+    xEmail, xKey, xActivate, xActOk, xActBad, xExpired, xClose, xHaveKey, xPhonesWarn, kNumStrings2
 };
 inline const char* kPrice = "$39 USD";
 inline const char* kBuyUrl = "https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=drophlex%40gmail.com&item_name=CONSTELLATION%20licence%20(send%20your%20e-mail)&amount=39.00&currency_code=USD&no_shipping=1";
@@ -84,7 +84,8 @@ inline juce::String T2 (int key)
         "One licence = one person, all your computers, Mac and Windows, VST3 and AU, every 1.x update.\n\n"
         "1. Press BUY (PayPal, %s).  2. You receive your key by e-mail at the address you paid with (usually the same day).  3. Paste e-mail and key here and press ACTIVATE.",
         "E-mail", "Licence key", "ACTIVATE", "Activated - thank you for supporting Polaris Sound Lab!", "That key does not match this e-mail. Copy it again, with no spaces missing.",
-        "Trial ended - audio is bypassed. Get a licence to keep mixing.", "Close", "I have a key"
+        "Trial ended - audio is bypassed. Get a licence to keep mixing.", "Close", "I have a key",
+        "3D PHONES ON - headphone preview. Turn it OFF before exporting your release (Spotify / DistroKid)."
     };
     static const char* es[kNumStrings2] = {
         "Exportar surround", "REC", "Armado: presiona Play o Exportar audio en Live", "Grabando", "Guardado - clic para ver los archivos",
@@ -93,7 +94,8 @@ inline juce::String T2 (int key)
         "Una licencia = una persona, todas tus computadoras, Mac y Windows, VST3 y AU, todas las actualizaciones 1.x.\n\n"
         "1. Presiona COMPRAR (PayPal, %s).  2. Recibes tu llave por correo en la direcci\xc3\xb3n con la que pagaste (normalmente el mismo d\xc3\xad" "a).  3. Pega correo y llave aqu\xc3\xad y presiona ACTIVAR.",
         "Correo", "Llave de licencia", "ACTIVAR", "Activada. \xc2\xa1Gracias por apoyar a Polaris Sound Lab!", "Esa llave no corresponde a este correo. C\xc3\xb3piala otra vez completa.",
-        "Termin\xc3\xb3 la prueba: el audio pasa sin procesar. Consigue una licencia para seguir mezclando.", "Cerrar", "Tengo una llave"
+        "Termin\xc3\xb3 la prueba: el audio pasa sin procesar. Consigue una licencia para seguir mezclando.", "Cerrar", "Tengo una llave",
+        "3D AUD\xc3\x8d" "FONOS ENCENDIDO - vista para aud\xc3\xad" "fonos. Ap\xc3\xa1galo antes de exportar tu lanzamiento (Spotify / DistroKid)."
     };
     const bool spanish = Registry::get().globals.lang.load() == 1;
     return juce::String::fromUTF8 ((spanish ? es : en)[juce::jlimit (0, kNumStrings2 - 1, key)]);

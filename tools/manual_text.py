@@ -194,6 +194,31 @@ and writes a real multichannel WAV. You mix on headphones with <b>3D Phones</b> 
 <p>Open it in Logic Pro, Reaper, Nuendo, Pro Tools, DaVinci Resolve or the Dolby Atmos Renderer and route it to a 5.1 / 7.1 / 7.1.4 bus: every star sits where you placed it, with elevated stars in the height speakers. It is a channel-based <b>bed</b> (not an ADM object file). LFE is left empty so your bass management stays in control.</p>
 <div class="box warn"><b>Good to know:</b> the stars write at the timeline position Live gives them, so keep plug-ins with large latency (linear-phase EQs, look-ahead limiters) off the star tracks, or put them on the Master after the export. Unfreeze star tracks before exporting. Everything not running through a star (a track without CONSTELLATION) is not in the surround file.</div>
 """},
+{"title": "Releasing your music (DistroKid, Spotify, Apple Music)", "html": """
+<p><b>Short answer: you upload ONE stereo file, exactly like always.</b> Export it with <b>3D Phones OFF</b>. You do <b>not</b> need an extra "3D" or binaural file for any platform.</p>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3mm;margin:3mm 0 4mm;font-size:9pt;text-align:center">
+<div class="box" style="background:#0b0f24;color:#e8ecff;margin:0">✦ Mix in Live<br><small>3D Phones ON is fine while mixing</small></div>
+<div class="box" style="background:#ffd166;margin:0"><b>3D Phones OFF</b><br><small>listen on speakers · Mono + Corr OK</small></div>
+<div class="box" style="background:#58e1ff;margin:0"><b>Export Audio</b><br><small>stereo WAV = your master</small></div>
+<div class="box" style="background:#c9f7d8;margin:0"><b>DistroKid</b><br><small>one file → Spotify, Apple, YouTube, Deezer, Tidal, Amazon…</small></div></div>
+<h3>Why 3D Phones must be OFF for the release</h3>
+<p>3D Phones renders the mix for the inside of your ears (binaural). On headphones it sounds amazing, but on speakers, in a car or on a phone speaker it can sound coloured, hollow or phasey. The normal stereo output of CONSTELLATION (3D Phones off) is a true speaker mix: pan, depth, room and Unmask — everything you built is still there and translates everywhere. When 3D Phones is on, the plug-in shows a pink warning at the top of the sky.</p>
+<table><tr><th style="width:38%">File</th><th>Upload it?</th></tr>
+<tr><td><b>Live export with 3D Phones OFF</b></td><td>✅ <b>Yes</b> — your stereo master for DistroKid (all platforms).</td></tr>
+<tr><td>Live export with 3D Phones ON</td><td>❌ No — headphone-only preview.</td></tr>
+<tr><td><b>Constellation_…_Binaural.wav</b></td><td>❌ No — for your own listening or to send previews by message.</td></tr>
+<tr><td><b>Constellation_…_7.1.4.wav</b></td><td>➕ Only as the starting point of an optional Dolby Atmos version (next page). Never as the main file.</td></tr></table>
+"""},
+{"title": "Spotify, spatial audio and Dolby Atmos", "html": """
+<h3>Spotify and spatial audio</h3>
+<p>Spotify plays stereo only (no Dolby Atmos, no spatial format), so on Spotify everybody hears your stereo master. Apple Music, Tidal and Amazon Music also get the same stereo master — and, only if you send one, an extra Dolby Atmos version that they play on compatible devices. They turn that Atmos mix into headphone 3D themselves; you never upload a binaural file.</p>
+<h3>Optional: a Dolby Atmos version through DistroKid</h3>
+<ol><li>Work at <b>48 kHz</b> in Live (Settings → Audio → Sample Rate) and export the stereo master as usual.</li>
+<li>In the same pass arm <b>REC 7.1.4</b> on the SKY, so the surround bed has exactly the same length and timing as the stereo master.</li>
+<li>Import the 7.1.4 WAV as the <b>bed</b> in the Dolby Atmos Renderer (or Logic Pro / Nuendo / Pro Tools Atmos) and export an <b>ADM BWF</b> file (24-bit, 48 kHz).</li>
+<li>In DistroKid's upload form, add it under <b>"Dolby Atmos / Spatial audio"</b> together with the stereo file. Upload both at the same time: an Atmos file cannot be added to a release later.</li></ol>
+<div class="box warn">The 7.1.4 WAV from CONSTELLATION is a channel bed, not a finished Atmos file — DistroKid only accepts ADM BWF. Platforms also refuse Atmos versions that are just upmixed from a finished stereo file; yours is built from your multitrack mix, which is what they ask for. If you don't want to deal with Atmos, skip it: the stereo master is all you need.</div>
+"""},
 {"title": "Trial and licence", "html": """
 <p>CONSTELLATION comes <b>complete for 30 days</b> — every feature, including surround export. After 30 days the stars stay visible but the audio passes through untouched until you activate a licence. Your sessions are never damaged: activate and everything sounds exactly as before.</p>
 <img class="shot" style="width:78%;display:block;margin:0 auto" src="{{plugin-licence.png}}"><div class="cap">The licence window: click the gold <b>Trial</b> button at the top of the plug-in.</div>
@@ -223,6 +248,7 @@ with a built-in funk demo band (kick, snare & clap, hats, funk bass, clav keys, 
 <tr><td>The mix sounds thin with Unmask.</td><td>Lower Unmask on the lower-priority stars or move them apart in space.</td></tr>
 <tr><td>CPU.</td><td>Each star is light (no FFT on the audio thread). Freeze tracks you don't need to move — but unfreeze star tracks before a surround export (frozen tracks don't run plug-ins).</td></tr>
 <tr><td>Latency?</td><td>Zero. Nothing to compensate.</td></tr>
+<tr><td>Which file goes to Spotify / DistroKid?</td><td>One stereo export with <b>3D Phones OFF</b>. Never the binaural file. See "Releasing your music".</td></tr>
 <tr><td>Is there a trial?</td><td>Yes: 30 days with everything unlocked, then a US$39 licence (see the licence page). The source code stays public under GPL-3.0.</td></tr>
 <tr><td>The surround file is silent or a track is missing.</td><td>The SKY must be on the Master, the recorder armed before you press Play / Export, and the star tracks must not be frozen or deactivated.</td></tr>
 </table>
@@ -426,6 +452,31 @@ y escribe un WAV multicanal real. Mezclas en audífonos con <b>3D audífonos</b>
 <p>Ábrelo en Logic Pro, Reaper, Nuendo, Pro Tools, DaVinci Resolve o el Dolby Atmos Renderer y mándalo a un bus 5.1 / 7.1 / 7.1.4: cada estrella queda donde la pusiste, con las elevadas en las bocinas de altura. Es una <b>cama</b> de canales (no un archivo ADM de objetos). El LFE queda vacío para que tú controles el manejo de graves.</p>
 <div class="box warn"><b>Importante:</b> las estrellas escriben en la posición de la línea de tiempo que les da Live, así que evita plug-ins con mucha latencia (EQs de fase lineal, limitadores con look-ahead) en las pistas con estrella, o ponlos en el Master después de exportar. Descongela las pistas con estrellas antes de exportar. Lo que no pasa por una estrella (una pista sin CONSTELLATION) no queda en el archivo surround.</div>
 """},
+{"title": "Publicar tu música (DistroKid, Spotify, Apple Music)", "html": """
+<p><b>Respuesta corta: subes UN solo archivo estéreo, igual que siempre.</b> Expórtalo con <b>3D audífonos APAGADO</b>. <b>No</b> necesitas un archivo extra "3D" o binaural para ninguna plataforma.</p>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:3mm;margin:3mm 0 4mm;font-size:9pt;text-align:center">
+<div class="box" style="background:#0b0f24;color:#e8ecff;margin:0">✦ Mezcla en Live<br><small>3D audífonos encendido está bien mientras mezclas</small></div>
+<div class="box" style="background:#ffd166;margin:0"><b>3D audífonos APAGADO</b><br><small>escucha en bocinas · Mono + Corr bien</small></div>
+<div class="box" style="background:#58e1ff;margin:0"><b>Exportar audio</b><br><small>WAV estéreo = tu master</small></div>
+<div class="box" style="background:#c9f7d8;margin:0"><b>DistroKid</b><br><small>un archivo → Spotify, Apple, YouTube, Deezer, Tidal, Amazon…</small></div></div>
+<h3>Por qué 3D audífonos debe estar apagado para el lanzamiento</h3>
+<p>3D audífonos procesa la mezcla para el interior de tus oídos (binaural). En audífonos suena increíble, pero en bocinas, en el coche o en la bocina de un celular puede sonar coloreado, hueco o con fase rara. La salida estéreo normal de CONSTELLATION (3D audífonos apagado) es una mezcla real para bocinas: paneo, profundidad, sala y Desenmascarar; todo lo que construiste sigue ahí y se traduce bien en cualquier lado. Cuando 3D audífonos está encendido, el plug-in muestra un aviso rosa arriba del cielo.</p>
+<table><tr><th style="width:38%">Archivo</th><th>¿Se sube?</th></tr>
+<tr><td><b>Exportación de Live con 3D audífonos APAGADO</b></td><td>✅ <b>Sí</b>: tu master estéreo para DistroKid (todas las plataformas).</td></tr>
+<tr><td>Exportación de Live con 3D audífonos ENCENDIDO</td><td>❌ No: es solo para escuchar en audífonos.</td></tr>
+<tr><td><b>Constellation_…_Binaural.wav</b></td><td>❌ No: para escuchar tú o mandar adelantos por mensaje.</td></tr>
+<tr><td><b>Constellation_…_7.1.4.wav</b></td><td>➕ Solo como punto de partida de una versión Dolby Atmos opcional (página siguiente). Nunca como archivo principal.</td></tr></table>
+"""},
+{"title": "Spotify, audio espacial y Dolby Atmos", "html": """
+<h3>Spotify y el audio espacial</h3>
+<p>Spotify reproduce solo estéreo (sin Dolby Atmos ni ningún formato espacial), así que en Spotify todos escuchan tu master estéreo. Apple Music, Tidal y Amazon Music también reciben ese mismo master estéreo y, solo si mandas una, una versión Dolby Atmos extra que reproducen en equipos compatibles. Ellos mismos convierten esa mezcla Atmos a 3D para audífonos; tú nunca subes un archivo binaural.</p>
+<h3>Opcional: una versión Dolby Atmos con DistroKid</h3>
+<ol><li>Trabaja a <b>48 kHz</b> en Live (Configuración → Audio → Frecuencia de muestreo) y exporta el master estéreo como siempre.</li>
+<li>En el mismo pase arma <b>REC 7.1.4</b> en el CIELO, para que la cama surround tenga exactamente la misma duración y tiempo que el master estéreo.</li>
+<li>Importa el WAV 7.1.4 como <b>cama</b> en el Dolby Atmos Renderer (o en Logic Pro / Nuendo / Pro Tools con Atmos) y exporta un archivo <b>ADM BWF</b> (24 bits, 48 kHz).</li>
+<li>En el formulario de DistroKid agrégalo en la sección <b>"Dolby Atmos / Spatial audio"</b> junto con el archivo estéreo. Sube los dos al mismo tiempo: no se puede agregar un archivo Atmos a un lanzamiento después.</li></ol>
+<div class="box warn">El WAV 7.1.4 de CONSTELLATION es una cama de canales, no un archivo Atmos terminado; DistroKid solo acepta ADM BWF. Las plataformas también rechazan versiones Atmos que solo son un upmix de un estéreo terminado; la tuya sale de tu mezcla multipista, que es lo que piden. Si no quieres meterte con Atmos, sáltalo: el master estéreo es todo lo que necesitas.</div>
+"""},
 {"title": "Prueba y licencia", "html": """
 <p>CONSTELLATION viene <b>completo durante 30 días</b>, con todas las funciones, incluida la exportación surround. Después de 30 días las estrellas siguen visibles pero el audio pasa sin procesar hasta que actives una licencia. Tus sesiones nunca se dañan: activas y todo suena exactamente igual que antes.</p>
 <img class="shot" style="width:78%;display:block;margin:0 auto" src="{{plugin-licence.png}}"><div class="cap">La ventana de licencia: haz clic en el botón dorado <b>Prueba</b> arriba del plug-in.</div>
@@ -455,6 +506,7 @@ con una banda funk de demo integrada (bombo, caja y clap, hats, bajo funk, clavi
 <tr><td>La mezcla suena delgada con Desenmascarar.</td><td>Baja Desenmascarar en las estrellas de menor prioridad o sepáralas en el espacio.</td></tr>
 <tr><td>CPU.</td><td>Cada estrella es ligera (sin FFT en el hilo de audio). Congela las pistas que no necesites mover, pero descongela las pistas con estrellas antes de exportar surround (las pistas congeladas no corren plug-ins).</td></tr>
 <tr><td>¿Latencia?</td><td>Cero. Nada que compensar.</td></tr>
+<tr><td>¿Qué archivo va a Spotify / DistroKid?</td><td>Una sola exportación estéreo con <b>3D audífonos APAGADO</b>. Nunca el archivo binaural. Ver "Publicar tu música".</td></tr>
 <tr><td>¿Hay prueba?</td><td>Sí: 30 días con todo desbloqueado y luego una licencia de US$39 (ver la página de licencia). El código fuente sigue público bajo GPL-3.0.</td></tr>
 <tr><td>El archivo surround sale en silencio o falta una pista.</td><td>El CIELO debe estar en el Master, el grabador armado antes de dar Play / Exportar, y las pistas con estrellas no deben estar congeladas ni desactivadas.</td></tr>
 </table>

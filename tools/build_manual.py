@@ -53,7 +53,7 @@ def build(lang):
     t = T[lang]
     pages = []
     pages.append(f"""<div class="page cover">{STAR}<h1>CONSTELLATION</h1><div class="tag">{t['tag']}</div><div class="sub">{t['sub']}</div>
-<img src="{img('plugin-sky.png')}"><div class="foot"><span>{t['manual']} · v1.0</span><span>Polaris Sound Lab · Mérida, Yucatán, México</span></div></div>""")
+<img src="{img('plugin-sky.png')}"><div class="foot"><span>{t['manual']} · v1.0.1</span><span>Polaris Sound Lab · Mérida, Yucatán, México</span></div></div>""")
     for i, sec in enumerate(t["sections"], 1):
         body = sec["html"]
         import re

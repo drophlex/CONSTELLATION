@@ -426,6 +426,14 @@ void SkyView::paint (juce::Graphics& g)
     labelRects.clear();
     for (auto& d : drawn) drawStar (g, d.first, d.second, reg.slot (d.first).fresh (now));
 
+    if (reg.globals.binaural.load())
+    {
+        auto bar = getLocalBounds().removeFromTop (30).reduced (juce::jmax (10, getWidth() / 2 - 330), 4).toFloat();
+        g.setColour (Theme::pink().withAlpha (0.22f)); g.fillRoundedRectangle (bar, 8.0f);
+        g.setColour (Theme::pink()); g.drawRoundedRectangle (bar, 8.0f, 1.0f);
+        g.setFont (F (11.5f)); g.drawFittedText (T2 (xPhonesWarn), bar.reduced (8, 0).toNearestInt(), juce::Justification::centred, 1, 0.8f);
+    }
+
     if (drawn.empty())
     {
         g.setColour (Theme::dim()); g.setFont (F (15.0f, false));
@@ -875,7 +883,7 @@ void ConstellationEditor::paint (juce::Graphics& g)
     g.setColour (Theme::text()); g.setFont (F (21.0f));
     g.drawText ("CONSTELLATION", 52, 8, 260, 26, juce::Justification::centredLeft);
     g.setColour (Theme::dim()); g.setFont (F (10.5f, false));
-    g.drawText (juce::String::fromUTF8 ("by Polaris Sound Lab  \xc2\xb7  v1.0"), 53, 32, 260, 14, juce::Justification::centredLeft);
+    g.drawText (juce::String::fromUTF8 ("by Polaris Sound Lab  \xc2\xb7  v1.0.1"), 53, 32, 260, 14, juce::Justification::centredLeft);
 
     // right panel
     auto panel = getLocalBounds().withTrimmedTop (56).removeFromRight (310).withTrimmedBottom (122);

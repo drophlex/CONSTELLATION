@@ -75,6 +75,9 @@ The plugin is <b>complete for 30 days</b>. Then one licence, <b>US$39 once</b>, 
 <details><summary><b>Surround in Ableton Live?</b></summary>
 Yes. Mix on headphones with <b>3D Phones</b>; then on the SKY (Master) choose 5.1 / 7.1 / 7.1.4, press <b>REC</b> and export as usual: you get a multichannel WAV (Music › Constellation Surround) plus a binaural WAV. In DAWs with surround buses (Logic, Reaper, Cubase/Nuendo…) Constellation also plays live on real speakers.
 </details>
+<details><summary><b>Which file do I upload to Spotify / DistroKid?</b></summary>
+One stereo export from Live with <b>3D Phones OFF</b> — the same single file for every platform. Never upload the binaural file or an export made with 3D Phones on (it is a headphone-only render). A Dolby Atmos version is optional: turn the 7.1.4 WAV into an ADM BWF in the Dolby Atmos Renderer and add it in DistroKid's "Dolby Atmos / Spatial audio" section together with the stereo file. Spotify plays stereo only. Full guide in the manual, "Releasing your music".
+</details>
 <details><summary><b>The stars of my other tracks don't appear.</b></summary>
 Use the same format on every track (all VST3 or all AU). In Ableton use the VST3: Live sends it the track name and colour.
 </details>
@@ -97,6 +100,8 @@ hacia el fondo = **profundidad** (nivel, aire, sala y pre-delay, como un escenar
 **Guía rápida.** Pon **Constellation (VST3)** al final de cada pista (**★ ESTRELLA**) y otro en el **Master** (**✦ CIELO**) →
 **Auto-Mezcla** → *Funk / Disco* → **Aplicar** → **Desenredar** → arrastra las estrellas. **Desenmascarar** abre espacio solo en las bandas que chocan,
 **3D audífonos** = surround binaural, **Envolvente 360°** te mete en la constelación, **Escenas + Morph** vuelan la mezcla entre estrofa y coro.
+
+**Para Spotify / DistroKid** sube un solo archivo estéreo exportado con **3D audífonos APAGADO** (nunca el binaural). Guía completa en el manual: "Publicar tu música".
 
 **Exportar surround:** en el CIELO (Master) elige 5.1 / 7.1 / 7.1.4, presiona **REC** y exporta como siempre: sale un WAV multicanal más uno binaural.
 
