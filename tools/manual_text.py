@@ -1,0 +1,398 @@
+#!/usr/bin/env python3
+# Manual text (English + Spanish). Run to regenerate manual_text.json, then build_manual.py.
+import json, pathlib
+
+EN = {
+"tag": "Mix by moving stars.",
+"sub": "3D visual mixer · 3D-aware spectral unmasking · binaural & surround up to 7.1.4<br>VST3 · AU · Web — free and open source — made for Ableton Live, works in any DAW",
+"manual": "User manual", "footer": "User manual",
+"sections": [
+{"title": "What is CONSTELLATION?", "html": """
+<p>CONSTELLATION turns your whole mix into a <b>sky of stars</b>. Every track is a star; you mix by moving it.
+Left and right is pan, up and down is height (brightness, and real elevation on surround speakers), and into the screen is
+<b>depth</b>: the star gets quieter, softer and sits further back in a shared room — exactly like a real stage.</p>
+<p>The size of each star is its loudness, the little corona around it is its spectrum, and red filaments between two stars
+show that they are fighting for the same frequencies. One click on <b>UNMASK</b>, <b>UNTANGLE</b> or <b>AUTO-MIX</b> fixes it.</p>
+<h3>What makes it different</h3>
+<table><tr><th style="width:34%">Feature</th><th>What it gives you</th></tr>
+<tr><td><b>No sends, no routing</b></td><td>Insert it on your tracks and they appear in the sky instantly. Every window can mix every track.</td></tr>
+<tr><td><b>3D-aware Unmask</b></td><td>Lower-priority stars dip <i>only</i> the bands where a higher-priority star is playing — and less when the two are far apart in space, because space already separates them.</td></tr>
+<tr><td><b>Auto-Mix from your track names</b></td><td>Reads names like <i>Kick, Bajo, Lead Vox, Pad</i> and lays out a whole mix in one click (7 styles).</td></tr>
+<tr><td><b>Untangle</b></td><td>Moves clashing stars apart, keeping kick, bass, snare and lead vocal anchored.</td></tr>
+<tr><td><b>Ableton track names and colours</b></td><td>Stars take the name and colour of the Live track automatically.</td></tr>
+<tr><td><b>3D Phones (binaural)</b></td><td>Surround on any pair of headphones — works inside Ableton, which only has stereo tracks.</td></tr>
+<tr><td><b>Real surround</b></td><td>Quad, 5.1, 7.1, 5.1.2, 5.1.4, 7.1.2 and 7.1.4 (Dolby Atmos bed layout) in DAWs with surround buses.</td></tr>
+<tr><td><b>360° Wrap</b></td><td>One slider turns the stage into a sphere: the listener walks into the constellation.</td></tr>
+<tr><td><b>One shared room</b></td><td>8 rooms (from Dry Booth to Cenote and Nebula). Every star uses the same room, so depth glues the mix.</td></tr>
+<tr><td><b>Scenes + Morph</b></td><td>Store 4 complete mixes and automate MORPH in Live to fly between them.</td></tr>
+</table>
+<div class="box tip">Everything is in English by default; press <span class="key">ES</span> (top right) for Spanish. Free, complete, no paid version.</div>
+"""},
+{"title": "Install", "html": """
+<h3>macOS (Apple Silicon and Intel)</h3>
+<ol><li>Download <b>CONSTELLATION-macOS.zip</b> from the latest GitHub release and unzip it.</li>
+<li>Right-click <b>install-mac.command</b> → <b>Open</b>. It copies the VST3 and AU to your user plug-in folders and removes the download quarantine.</li>
+<li>Open Ableton Live → <b>Settings → Plug-Ins</b> → turn on <b>Use VST3 Plug-in System Folders</b> (and Audio Units if you prefer AU) → <b>Rescan</b>.</li></ol>
+<h3>Windows 10 / 11</h3>
+<ol><li>Download <b>CONSTELLATION-Windows.zip</b> and unzip it.</li>
+<li>Double-click <b>install-windows.bat</b> → <b>Yes</b>. It copies the VST3 to <code>C:\\Program Files\\Common Files\\VST3</code>.</li>
+<li>Ableton Live → <b>Options → Preferences → Plug-Ins</b> → <b>Use VST3 Plug-in System Folders</b> → <b>Rescan</b>.</li></ol>
+<h3>Where to find it</h3>
+<p>Browser → <b>Plug-Ins → VST3 → Polaris Sound Lab → Constellation</b>. It is an audio effect: drop it on any audio, instrument, group or return track.</p>
+<div class="box tip"><b>In Ableton use the VST3:</b> Live sends the track name and colour to VST3 plug-ins, so your stars are named and coloured automatically.</div>
+<div class="box warn"><b>Important:</b> use the same format on every track (all VST3 <i>or</i> all AU). Stars only see stars of the same format, because the host loads each format as a separate program.</div>
+<h3>Other DAWs</h3>
+<p>Logic Pro (AU), Reaper, Bitwig, Cubase / Nuendo, Studio One, FL Studio and Pro Tools hosts that load VST3/AU work the same way.
+In DAWs that sandbox plug-ins in separate processes (for example Bitwig's "isolated" mode) set the plug-in hosting mode to <i>together</i> so the stars can see each other.</p>
+"""},
+{"title": "Set up in Ableton Live (2 minutes)", "html": """
+<ol>
+<li><b>Name your tracks</b> the usual way (Kick, Snare, Hats, Bass, Lead Vox, Pad, Keys, Guitar…). English or Spanish names both work (Bombo, Bajo, Voz, Teclado, Guitarra…).</li>
+<li>Drop <b>Constellation</b> as the <b>last device</b> on every track you want in the sky. Each one starts in <b>★ STAR</b> mode and appears instantly with the track's name and colour.</li>
+<li>Drop one more Constellation on the <b>Master</b> and press <b>✦ SKY</b>. This is your control room: master meters, correlation, mono check, scenes and morph live here.</li>
+<li>In the SKY window choose a style in <b>AUTO-MIX</b> (try <i>Funk / Disco</i>) and press <b>Apply</b>. Then press <b>Untangle</b>.</li>
+<li>Pick a <b>Room</b> at the top. Now drag stars until the mix feels right.</li>
+</ol>
+<div class="box tip"><b>Tip:</b> save the set as a template (<b>File → Save Live Set as Template</b>) with Constellation already on your usual tracks, so every new song starts as a constellation.</div>
+<div class="box tip"><b>Where in the chain?</b> Put it <b>last</b> on each track (after EQ and compression) so pan, depth and room are the final spatial step. Live's own track panner should stay centred; Constellation pans for you.</div>
+<img class="shot" src="{{plugin-es.png}}"><div class="cap">The same window in Spanish (ES), 3D view.</div>
+"""},
+{"title": "The screen", "html": """
+<img class="shot" style="width:82%;display:block;margin:0 auto" src="{{plugin-sky.png}}"><div class="cap">SKY mode on the Master, 3D view, Club / Techno style.</div>
+<table><tr><th style="width:28%">Area</th><th>What it does</th></tr>
+<tr><td><b>★ STAR / ✦ SKY</b></td><td>STAR = this track's star. SKY = the control room (put one on the Master).</td></tr>
+<tr><td><b>3D · TOP · FRONT</b></td><td>Camera views. In 3D, drag the empty sky to orbit. TOP is perfect for surround; FRONT is the classic left/right + high/low picture.</td></tr>
+<tr><td><b>Room</b></td><td>The shared space every star sits in.</td></tr>
+<tr><td><b>3D Phones</b></td><td>Binaural surround for headphones (the listener icon shows pink headphones).</td></tr>
+<tr><td><b>ES / EN · ?</b></td><td>Language and the quick guide.</td></tr>
+<tr><td><b>Sky</b></td><td>All stars. Size = loudness, corona = spectrum (10 bands), red tips = Unmask cuts, red filaments = clashes, the cyan head = the listener, gold boxes = speakers (surround outputs).</td></tr>
+<tr><td><b>Right panel</b></td><td>The selected star: role, 9 knobs, priority, mute, solo and the band meter (red from the top = Unmask cut).</td></tr>
+<tr><td><b>Bottom bar</b></td><td>Scenes A–D, Morph (SKY), Auto-Mix, Untangle, 360° Wrap, Mono (SKY) and meters.</td></tr>
+<tr><td><b>♥ corner button</b></td><td>If you like it, buy me a coffee (PayPal). Totally optional.</td></tr>
+</table>
+"""},
+{"title": "Moving the stars", "html": """
+<table><tr><th style="width:36%">Gesture</th><th>Result</th></tr>
+<tr><td><b>Drag a star</b> (3D view)</td><td>Moves it on the floor: left/right = pan, forward/back = depth.</td></tr>
+<tr><td><b>Shift + drag</b> or right-drag (3D)</td><td>Height: up = brighter / elevated, down = warmer.</td></tr>
+<tr><td><b>Drag</b> in FRONT view</td><td>Pan + height.</td></tr>
+<tr><td><b>Drag</b> in TOP view</td><td>Pan + depth, seen from above (best for surround).</td></tr>
+<tr><td><b>Alt + drag</b> / <b>mouse wheel</b></td><td>Width (the glow gets wider).</td></tr>
+<tr><td><b>Shift + wheel</b></td><td>Gain.</td></tr>
+<tr><td><b>Double-click a star</b></td><td>Reset position and width.</td></tr>
+<tr><td><b>Drag the empty sky</b> (3D)</td><td>Orbit the camera.</td></tr>
+</table>
+<h3>What depth really does</h3>
+<p>Depth is not just volume. Moving a star back lowers the direct sound (up to −11 dB), rolls off the highs like air does,
+sends more of it to the shared room and shortens the gap before the reverb — the same cues your ears use on a real stage.
+Close stars stay dry, present and bright.</p>
+<h3>What height does</h3>
+<p>On stereo and headphones, height is a gentle tilt (a presence lift around 8 kHz and less low end going up, the opposite going down)
+because the ear hears "higher" as "brighter". On surround layouts with height speakers (x.x.2 / x.x.4) the star really rises into the top speakers.</p>
+"""},
+{"title": "The star controls", "html": """
+<table><tr><th style="width:22%">Control</th><th style="width:18%">Range</th><th>What it does</th></tr>
+<tr><td><b>Gain</b></td><td>−36 … +12 dB</td><td>Level of the star.</td></tr>
+<tr><td><b>Width</b></td><td>0 … 2</td><td>Mid/side width: 0 = mono point, 1 = original, 2 = extra wide.</td></tr>
+<tr><td><b>Tone</b></td><td>dark … bright</td><td>A smooth tilt EQ (shelves at 250 Hz and 4 kHz).</td></tr>
+<tr><td><b>Pan</b></td><td>L … R</td><td>Left/right. Stereo sources keep their image and fold to one side when panned hard.</td></tr>
+<tr><td><b>Height</b></td><td>low … high</td><td>Brightness / elevation (see previous page).</td></tr>
+<tr><td><b>Depth</b></td><td>near … far</td><td>Distance on the stage (level, air, room, pre-delay).</td></tr>
+<tr><td><b>Space</b></td><td>0 … 1</td><td>How much of the shared room this star sends (scaled by depth).</td></tr>
+<tr><td><b>Low Cut</b></td><td>20 … 800 Hz</td><td>24 dB/oct high-pass to clean mud. 20 Hz = off.</td></tr>
+<tr><td><b>Unmask</b></td><td>0 … 1</td><td>How much this star makes room for higher-priority stars (max. 9 dB per band).</td></tr>
+<tr><td><b>Priority</b></td><td>1 … 10</td><td>Who wins a frequency fight. The highest priority is never cut.</td></tr>
+<tr><td><b>Role</b></td><td>Auto, Kick … Other</td><td>What the track is. Auto reads the track name. Used by Auto-Mix and Untangle; it also picks the star colour when the DAW sends none.</td></tr>
+<tr><td><b>Mute / Solo</b></td><td></td><td>Work across every star in the session.</td></tr>
+</table>
+<p>Every control is a normal plug-in parameter: you can automate it in Live, map it to a controller or use it in clip envelopes.
+Double-click any knob to reset it.</p>
+"""},
+{"title": "Unmask and priority", "html": """
+<p>Each star listens to itself in 10 bands (50 Hz … 15 kHz) and publishes its spectrum to the others. When a star with a <b>higher
+priority</b> is playing strongly in a band where this star is also strong, this star dips <i>only that band</i>, only while it happens
+(fast attack, smooth release). It is a dynamic EQ that knows the whole mix.</p>
+<h3>Why "3D-aware"</h3>
+<p>Two sounds that are far apart in the sky mask each other less — your ears separate them by direction and distance. So the
+cut is scaled by how close the stars are. Move a guitar to the left and the vocal to the centre and you will see the red tips on
+the guitar shrink: space did part of the work, so less EQ is needed and the guitar keeps its body.</p>
+<h3>Recipes</h3>
+<ul><li><b>Kick vs bass:</b> kick priority 10, bass 9, Unmask on the bass 0.5 – 0.8. The bass ducks at the kick's fundamental only when the kick hits.</li>
+<li><b>Vocal on top:</b> lead vocal priority 10, keys / guitars / pads 4 – 6 with Unmask 0.4 – 0.7: the 1 – 4 kHz range opens around the words.</li>
+<li><b>Pads that never cloud:</b> pad priority 2, Unmask 0.8, depth far, width 1.6 +.</li></ul>
+<div class="box tip">Red tips on a star's corona and red bars on the band meter show the cut in real time. Red filaments between stars show clashes that are still there — move the stars or press <b>Untangle</b>.</div>
+"""},
+{"title": "Auto-Mix, roles and Untangle", "html": """
+<p><b>AUTO-MIX</b> places every star (pan, height, depth, width, priority, space and tone) according to its role and the chosen style.
+When several tracks share a role (two guitars, three percussion tracks) they are spread to both sides automatically.</p>
+<table><tr><th style="width:30%">Style</th><th>Character</th></tr>
+<tr><td><b>Club / Techno</b></td><td>Kick and bass mono and upfront, hats high, pads wide and far.</td></tr>
+<tr><td><b>Funk / Disco</b></td><td>Tight rhythm section, guitar and keys in opposite corners, vocal in your face.</td></tr>
+<tr><td><b>Hip-Hop / Trap</b></td><td>Vocal and 808 dominant and dry, everything else around them.</td></tr>
+<tr><td><b>Ambient / Cinematic</b></td><td>Deep, wide, lots of room; gentle priorities.</td></tr>
+<tr><td><b>Live Band</b></td><td>Stage picture from the audience: drums behind, players spread like a real band.</td></tr>
+<tr><td><b>Wide Pop</b></td><td>Wide backing vocals and synths, very focused centre.</td></tr>
+<tr><td><b>Immersive 360°</b></td><td>Made for 3D Phones / surround with 360° Wrap: elements around and above you.</td></tr></table>
+<h3>Role keywords (English / Spanish)</h3>
+<p style="font-size:9.4pt">Kick: kick, bombo, bd · Snare: snare, clap, caja, rim · Hats: hat, hh, ride, crash, platillo · Percussion: perc, conga, bongo, shaker, tom, güiro, timbal ·
+Bass: bass, bajo, sub, 808 · Lead vocal: vox, vocal, voz, voice, rap · Backing: backing, coro, choir, harmony, adlib · Pad: pad, drone, texture ·
+Keys: piano, keys, rhodes, teclado, organ · Guitar: guit, gtr, guitarra · Strings / brass: string, violin, cuerda, brass, horn, sax, trompeta ·
+FX: fx, riser, noise, impact, atmos · Lead synth: lead, arp, synth, pluck, stab, acid, 303. If a name says nothing, set the <b>Role</b> menu by hand.</p>
+<h3>Untangle</h3>
+<p>Finds pairs of stars that still clash and moves the lower-priority one away (sideways, or further back for kick, bass, snare and lead vocal, which stay centred). Press it again for more.</p>
+"""},
+{"title": "Rooms, 3D Phones and surround", "html": """
+<h3>Rooms</h3>
+<p>Dry Booth · Studio · Club · Plate · Concert Hall · <b>Cenote</b> (a deep Yucatán sinkhole: dark, long, stone reflections) · Cathedral · Nebula (huge, airy, almost endless).
+The room is shared by every star, so changing it changes the whole mix at once.</p>
+<h3>3D Phones (binaural)</h3>
+<p>Press <b>3D Phones</b> and every star is rendered for headphones with a spherical-head model (time and level differences between the ears,
+head shadow, rear and elevation colour). Stars can now be beside and behind you. It works in Ableton Live and any stereo DAW.
+Turn it off before you bounce a mix for speakers.</p>
+<h3>Real speakers (5.1 · 7.1 · 7.1.4 …)</h3>
+<p>In DAWs with multichannel tracks (Logic Pro, Reaper, Cubase / Nuendo, Studio One, Pro Tools-style hosts) set the track or
+plug-in output to <b>Quad, 5.1, 7.1, 5.1.2, 5.1.4, 7.1.2 or 7.1.4</b>. Constellation detects the layout, draws the speakers around the
+listener and pans every star between them, with height speakers for elevated stars and the room spread around the whole array. LFE stays free for your bass management.</p>
+<div class="box warn"><b>About Ableton Live:</b> Live's tracks are stereo only, so it cannot carry a 5.1 / 7.1.4 signal between devices. In Live use <b>3D Phones</b> for immersive mixing;
+for real speaker arrays use a DAW with surround buses (the same project ideas and presets apply).</div>
+<h3>360° Wrap</h3>
+<p>At 0 the stars form a stage in front of you (like stereo). Raise it and the depth axis bends around the listener: far stars go to your sides and then behind you.
+The cyan listener walks into the sky so you can see it.</p>
+<img class="shot" style="width:66%;display:block;margin:0 auto" src="{{plugin-surround-top.png}}"><div class="cap">TOP view on a 7.1.4 output with 360° Wrap at 0.75: gold boxes are the speakers.</div>
+"""},
+{"title": "Scenes and Morph", "html": """
+<p>Scenes live in the <b>SKY</b> instance (on the Master).</p>
+<ol><li>Arrange the stars. Press <b>Store</b> (it turns red) and then <b>A</b>. The scene keeps position, width, gain, space and tone of every star.</li>
+<li>Make a different mix (for example the chorus: wider, brighter, vocals forward) → <b>Store → B</b>. Up to four scenes.</li>
+<li>Click a lit letter to jump to it, or slide <b>Morph</b> to blend smoothly between the stored scenes (A → B → C → D).</li>
+<li>In Live, show the Master's device parameters and <b>automate Scene Morph</b> in the arrangement: verse at 0, chorus at 1 — the whole mix flies.</li></ol>
+<div class="box tip">The scenes are saved with your Live Set. Stars are recognised by an internal ID, so renaming or moving tracks does not break them.</div>
+<h3>Mono and correlation</h3>
+<p>In SKY, <b>Mono</b> folds the master to mono so you can check that nothing disappears on phones or club systems. The <b>Corr</b> dot should stay on the gold (right) side; left of centre (red) means phase problems — usually something too wide.</p>
+"""},
+{"title": "The web version", "html": """
+<p>Try CONSTELLATION in any browser, on a computer or a phone — nothing to install. It has the same sky, Unmask, Auto-Mix, Untangle, rooms, 3D Phones, 360° Wrap, scenes and morph,
+with a built-in funk demo band (kick, snare & clap, hats, funk bass, clav keys, space pad and a lead synth).</p>
+<ol><li>Open the web page and press <b>Start the demo mix</b> (use headphones for 3D Phones).</li>
+<li>Drag the stars, try Auto-Mix styles, press 3D Phones and raise 360° Wrap.</li>
+<li><b>Drop your own audio files</b> (WAV, MP3, AIFF, FLAC…) anywhere on the page, or press <b>+ Add audio</b>: each file becomes a looping star — perfect for checking stems.</li></ol>
+<div class="two"><img class="shot" src="{{web-desk.png}}"><img class="shot" src="{{web-phone.png}}" style="width:60%;justify-self:center"></div>
+<div class="cap">Computer and phone.</div>
+"""},
+{"title": "Questions and solutions", "html": """
+<table><tr><th style="width:38%">Problem</th><th>Solution</th></tr>
+<tr><td>I don't see the other tracks' stars.</td><td>Use the same format everywhere (all VST3 or all AU). Make sure the tracks are playing or armed — sleeping stars (no audio processed for 1.5 s) are dimmed and ignored by Unmask.</td></tr>
+<tr><td>The star is called "Track".</td><td>The DAW didn't send a name: set the Role by hand. In Live, rename the track and it updates.</td></tr>
+<tr><td>Live's panner and Constellation fight.</td><td>Leave Live's pan knob at C; pan with the star.</td></tr>
+<tr><td>Too much reverb.</td><td>Lower Space on the star, bring it forward (depth), or choose a drier room.</td></tr>
+<tr><td>The mix sounds thin with Unmask.</td><td>Lower Unmask on the lower-priority stars or move them apart in space.</td></tr>
+<tr><td>CPU.</td><td>Each star is light (no FFT on the audio thread). Freeze tracks you don't need to move.</td></tr>
+<tr><td>Latency?</td><td>Zero. Nothing to compensate.</td></tr>
+<tr><td>Is it free?</td><td>Yes: complete, free and open source (GPL-3.0). No paid version, no account.</td></tr>
+</table>
+<h3>Credits</h3>
+<p>Design by <b>Dark Funk Durcal</b> — <i>What is Dark Funk Durcal? Search it on Spotify, YouTube and every audio platform.</i><br>
+Created at <b>Polaris Sound Lab</b>, Mérida, Yucatán, México · Instagram @polaris.sound.lab · YouTube @PolarisSoundLab<br>
+Source code: github.com/drophlex/CONSTELLATION · Built with JUCE.</p>
+<p class="donate">♥ If you like it, buy me a coffee — PayPal drophlex@gmail.com</p>
+"""},
+]}
+
+ES = {
+"tag": "Mezcla moviendo estrellas.",
+"sub": "Mezclador visual 3D · desenmascarado espectral consciente del espacio · binaural y surround hasta 7.1.4<br>VST3 · AU · Web — gratis y de código abierto — hecho para Ableton Live, funciona en cualquier DAW",
+"manual": "Manual de usuario", "footer": "Manual de usuario",
+"sections": [
+{"title": "¿Qué es CONSTELLATION?", "html": """
+<p>CONSTELLATION convierte toda tu mezcla en un <b>cielo de estrellas</b>. Cada pista es una estrella y mezclas moviéndola.
+Izquierda y derecha es el paneo, arriba y abajo la altura (brillo, y elevación real en bocinas surround) y hacia el fondo la
+<b>profundidad</b>: la estrella suena más baja, más suave y más atrás dentro de una sala compartida, igual que en un escenario real.</p>
+<p>El tamaño de cada estrella es su volumen, la pequeña corona que la rodea es su espectro, y los filamentos rojos entre dos estrellas
+indican que pelean por las mismas frecuencias. Un clic en <b>DESENMASCARAR</b>, <b>DESENREDAR</b> o <b>AUTO-MEZCLA</b> lo resuelve.</p>
+<h3>Lo que lo hace diferente</h3>
+<table><tr><th style="width:34%">Función</th><th>Lo que te da</th></tr>
+<tr><td><b>Sin envíos ni ruteo</b></td><td>Lo insertas en tus pistas y aparecen en el cielo al instante. Cualquier ventana puede mezclar todas las pistas.</td></tr>
+<tr><td><b>Desenmascarado 3D</b></td><td>Las estrellas de menor prioridad bajan <i>solo</i> las bandas donde suena una de mayor prioridad, y menos cuando están lejos en el espacio, porque el espacio ya las separa.</td></tr>
+<tr><td><b>Auto-Mezcla con tus nombres de pista</b></td><td>Lee nombres como <i>Kick, Bajo, Voz, Pad</i> y acomoda toda la mezcla en un clic (7 estilos).</td></tr>
+<tr><td><b>Desenredar</b></td><td>Separa las estrellas que chocan, manteniendo al centro bombo, bajo, caja y voz principal.</td></tr>
+<tr><td><b>Nombres y colores de Ableton</b></td><td>Las estrellas toman solas el nombre y el color de la pista de Live.</td></tr>
+<tr><td><b>3D audífonos (binaural)</b></td><td>Surround en cualquier par de audífonos; funciona dentro de Ableton, que solo tiene pistas estéreo.</td></tr>
+<tr><td><b>Surround real</b></td><td>Quad, 5.1, 7.1, 5.1.2, 5.1.4, 7.1.2 y 7.1.4 (formato de cama Dolby Atmos) en DAWs con buses surround.</td></tr>
+<tr><td><b>Envolvente 360°</b></td><td>Un deslizador convierte el escenario en una esfera: el oyente entra a la constelación.</td></tr>
+<tr><td><b>Una sola sala compartida</b></td><td>8 salas (de Cabina seca a Cenote y Nebulosa). Todas las estrellas usan la misma, así la profundidad une la mezcla.</td></tr>
+<tr><td><b>Escenas + Morph</b></td><td>Guarda 4 mezclas completas y automatiza MORPH en Live para volar entre ellas.</td></tr>
+</table>
+<div class="box tip">Todo viene en inglés; presiona <span class="key">ES</span> (arriba a la derecha) para español. Gratis, completo, sin versión de pago.</div>
+"""},
+{"title": "Instalación", "html": """
+<h3>macOS (Apple Silicon e Intel)</h3>
+<ol><li>Descarga <b>CONSTELLATION-macOS.zip</b> del último release de GitHub y descomprímelo.</li>
+<li>Clic derecho en <b>install-mac.command</b> → <b>Abrir</b>. Copia el VST3 y el AU a tus carpetas de plug-ins y quita la cuarentena de descarga.</li>
+<li>Abre Ableton Live → <b>Configuración → Plug-Ins</b> → activa <b>Usar carpetas de sistema VST3</b> (y Audio Units si prefieres AU) → <b>Re-escanear</b>.</li></ol>
+<h3>Windows 10 / 11</h3>
+<ol><li>Descarga <b>CONSTELLATION-Windows.zip</b> y descomprímelo.</li>
+<li>Doble clic en <b>install-windows.bat</b> → <b>Sí</b>. Copia el VST3 a <code>C:\\Program Files\\Common Files\\VST3</code>.</li>
+<li>Ableton Live → <b>Opciones → Preferencias → Plug-Ins</b> → <b>Usar carpetas de sistema VST3</b> → <b>Re-escanear</b>.</li></ol>
+<h3>Dónde encontrarlo</h3>
+<p>Navegador → <b>Plug-Ins → VST3 → Polaris Sound Lab → Constellation</b>. Es un efecto de audio: suéltalo en cualquier pista de audio, instrumento, grupo o retorno.</p>
+<div class="box tip"><b>En Ableton usa el VST3:</b> Live le manda el nombre y el color de la pista a los plug-ins VST3, así tus estrellas se nombran y colorean solas.</div>
+<div class="box warn"><b>Importante:</b> usa el mismo formato en todas las pistas (todo VST3 <i>o</i> todo AU). Las estrellas solo ven estrellas del mismo formato, porque el DAW carga cada formato como un programa distinto.</div>
+<h3>Otros DAWs</h3>
+<p>Logic Pro (AU), Reaper, Bitwig, Cubase / Nuendo, Studio One, FL Studio y cualquier DAW que cargue VST3/AU funcionan igual.
+En DAWs que aíslan los plug-ins en procesos separados (por ejemplo el modo "aislado" de Bitwig) pon el modo de hospedaje en <i>juntos</i> para que las estrellas se vean.</p>
+"""},
+{"title": "Configurarlo en Ableton Live (2 minutos)", "html": """
+<ol>
+<li><b>Nombra tus pistas</b> como siempre (Kick, Caja, Hats, Bajo, Voz, Pad, Teclado, Guitarra…). Sirven nombres en inglés o en español.</li>
+<li>Pon <b>Constellation</b> como <b>último dispositivo</b> en cada pista que quieras en el cielo. Cada uno empieza en modo <b>★ ESTRELLA</b> y aparece al instante con el nombre y color de la pista.</li>
+<li>Pon otro Constellation en el <b>Master</b> y presiona <b>✦ CIELO</b>. Es tu cuarto de control: medidores del master, correlación, prueba en mono, escenas y morph viven aquí.</li>
+<li>En la ventana CIELO elige un estilo en <b>AUTO-MEZCLA</b> (prueba <i>Funk / Disco</i>) y presiona <b>Aplicar</b>. Luego presiona <b>Desenredar</b>.</li>
+<li>Elige una <b>Sala</b> arriba. Ahora arrastra estrellas hasta que la mezcla se sienta bien.</li>
+</ol>
+<div class="box tip"><b>Tip:</b> guarda el set como plantilla (<b>Archivo → Guardar Live Set como plantilla</b>) con Constellation ya puesto en tus pistas de siempre, y cada canción nueva empezará como constelación.</div>
+<div class="box tip"><b>¿En qué lugar de la cadena?</b> Ponlo <b>al final</b> de cada pista (después del EQ y la compresión) para que paneo, profundidad y sala sean el último paso espacial. Deja el paneo propio de Live al centro; Constellation panea por ti.</div>
+<img class="shot" src="{{plugin-es.png}}"><div class="cap">La ventana en español (ES), vista 3D.</div>
+"""},
+{"title": "La pantalla", "html": """
+<img class="shot" style="width:82%;display:block;margin:0 auto" src="{{plugin-sky.png}}"><div class="cap">Modo CIELO en el Master, vista 3D, estilo Club / Techno.</div>
+<table><tr><th style="width:28%">Zona</th><th>Qué hace</th></tr>
+<tr><td><b>★ ESTRELLA / ✦ CIELO</b></td><td>ESTRELLA = la estrella de esta pista. CIELO = el cuarto de control (ponlo en el Master).</td></tr>
+<tr><td><b>3D · ARRIBA · FRENTE</b></td><td>Vistas de cámara. En 3D arrastra el cielo vacío para girar. ARRIBA es ideal para surround; FRENTE es la imagen clásica izquierda/derecha + agudo/grave.</td></tr>
+<tr><td><b>Sala</b></td><td>El espacio compartido donde están todas las estrellas.</td></tr>
+<tr><td><b>3D audífonos</b></td><td>Surround binaural para audífonos (el oyente muestra audífonos rosas).</td></tr>
+<tr><td><b>ES / EN · ?</b></td><td>Idioma y guía rápida.</td></tr>
+<tr><td><b>Cielo</b></td><td>Todas las estrellas. Tamaño = volumen, corona = espectro (10 bandas), puntas rojas = recortes de Desenmascarar, filamentos rojos = choques, la cabeza cian = el oyente, cajas doradas = bocinas (salidas surround).</td></tr>
+<tr><td><b>Panel derecho</b></td><td>La estrella seleccionada: rol, 9 perillas, prioridad, mute, solo y medidor de bandas (rojo desde arriba = recorte).</td></tr>
+<tr><td><b>Barra inferior</b></td><td>Escenas A–D, Morph (CIELO), Auto-Mezcla, Desenredar, Envolvente 360°, Mono (CIELO) y medidores.</td></tr>
+<tr><td><b>Botón ♥ de la esquina</b></td><td>Si te gusta, invítame un café (PayPal). Totalmente opcional.</td></tr>
+</table>
+"""},
+{"title": "Mover las estrellas", "html": """
+<table><tr><th style="width:36%">Gesto</th><th>Resultado</th></tr>
+<tr><td><b>Arrastrar una estrella</b> (vista 3D)</td><td>La mueve por el piso: izquierda/derecha = paneo, adelante/atrás = profundidad.</td></tr>
+<tr><td><b>Shift + arrastrar</b> o clic derecho (3D)</td><td>Altura: arriba = más brillante / elevada, abajo = más cálida.</td></tr>
+<tr><td><b>Arrastrar</b> en vista FRENTE</td><td>Paneo + altura.</td></tr>
+<tr><td><b>Arrastrar</b> en vista ARRIBA</td><td>Paneo + profundidad visto desde arriba (lo mejor para surround).</td></tr>
+<tr><td><b>Alt + arrastrar</b> / <b>rueda del mouse</b></td><td>Ancho (el brillo se hace más ancho).</td></tr>
+<tr><td><b>Shift + rueda</b></td><td>Ganancia.</td></tr>
+<tr><td><b>Doble clic en una estrella</b></td><td>Resetea posición y ancho.</td></tr>
+<tr><td><b>Arrastrar el cielo vacío</b> (3D)</td><td>Gira la cámara.</td></tr>
+</table>
+<h3>Lo que realmente hace la profundidad</h3>
+<p>La profundidad no es solo volumen. Al mandar una estrella al fondo baja el sonido directo (hasta −11 dB), se suavizan los agudos como lo hace el aire,
+manda más a la sala compartida y se acorta el espacio antes de la reverb: las mismas pistas que usa tu oído en un escenario real.
+Las estrellas cercanas quedan secas, presentes y brillantes.</p>
+<h3>Lo que hace la altura</h3>
+<p>En estéreo y audífonos la altura es una inclinación suave (más presencia cerca de 8 kHz y menos graves al subir, al revés al bajar),
+porque el oído escucha "más alto" como "más brillante". En formatos surround con bocinas de altura (x.x.2 / x.x.4) la estrella sube de verdad a las bocinas superiores.</p>
+"""},
+{"title": "Controles de la estrella", "html": """
+<table><tr><th style="width:22%">Control</th><th style="width:18%">Rango</th><th>Qué hace</th></tr>
+<tr><td><b>Ganancia</b></td><td>−36 … +12 dB</td><td>Nivel de la estrella.</td></tr>
+<tr><td><b>Ancho</b></td><td>0 … 2</td><td>Ancho mid/side: 0 = punto mono, 1 = original, 2 = extra ancho.</td></tr>
+<tr><td><b>Tono</b></td><td>oscuro … brillante</td><td>EQ de inclinación suave (shelves en 250 Hz y 4 kHz).</td></tr>
+<tr><td><b>Paneo</b></td><td>I … D</td><td>Izquierda/derecha. Las fuentes estéreo conservan su imagen y se juntan de un lado al panear a tope.</td></tr>
+<tr><td><b>Altura</b></td><td>grave … alto</td><td>Brillo / elevación (ver página anterior).</td></tr>
+<tr><td><b>Profundidad</b></td><td>cerca … lejos</td><td>Distancia en el escenario (nivel, aire, sala, pre-delay).</td></tr>
+<tr><td><b>Espacio</b></td><td>0 … 1</td><td>Cuánto manda esta estrella a la sala compartida (escalado por la profundidad).</td></tr>
+<tr><td><b>Corte graves</b></td><td>20 … 800 Hz</td><td>Pasa-altos de 24 dB/oct para limpiar lodo. 20 Hz = apagado.</td></tr>
+<tr><td><b>Desenmascarar</b></td><td>0 … 1</td><td>Cuánto espacio abre esta estrella a las de mayor prioridad (máx. 9 dB por banda).</td></tr>
+<tr><td><b>Prioridad</b></td><td>1 … 10</td><td>Quién gana una pelea de frecuencias. La prioridad más alta nunca se recorta.</td></tr>
+<tr><td><b>Rol</b></td><td>Auto, Bombo … Otro</td><td>Qué es la pista. Auto lee el nombre. Lo usan Auto-Mezcla y Desenredar; también da el color cuando el DAW no manda ninguno.</td></tr>
+<tr><td><b>Mute / Solo</b></td><td></td><td>Funcionan entre todas las estrellas de la sesión.</td></tr>
+</table>
+<p>Cada control es un parámetro normal: puedes automatizarlo en Live, asignarlo a un controlador o usarlo en envolventes de clip.
+Doble clic en cualquier perilla para resetearla.</p>
+"""},
+{"title": "Desenmascarar y prioridad", "html": """
+<p>Cada estrella se escucha a sí misma en 10 bandas (50 Hz … 15 kHz) y comparte su espectro con las demás. Cuando una estrella de <b>mayor
+prioridad</b> suena fuerte en una banda donde esta estrella también es fuerte, esta baja <i>solo esa banda</i> y solo mientras pasa
+(ataque rápido, liberación suave). Es un EQ dinámico que conoce toda la mezcla.</p>
+<h3>Por qué "3D"</h3>
+<p>Dos sonidos lejanos en el cielo se enmascaran menos: tu oído los separa por dirección y distancia. Por eso el recorte se escala según
+qué tan cerca están las estrellas. Mueve una guitarra a la izquierda y la voz al centro y verás encogerse las puntas rojas de la guitarra:
+el espacio hizo parte del trabajo, se necesita menos EQ y la guitarra conserva su cuerpo.</p>
+<h3>Recetas</h3>
+<ul><li><b>Bombo contra bajo:</b> bombo prioridad 10, bajo 9, Desenmascarar del bajo 0.5 – 0.8. El bajo baja en la fundamental del bombo solo cuando el bombo golpea.</li>
+<li><b>Voz encima de todo:</b> voz prioridad 10, teclados / guitarras / pads 4 – 6 con Desenmascarar 0.4 – 0.7: se abre el rango de 1 – 4 kHz alrededor de las palabras.</li>
+<li><b>Pads que nunca nublan:</b> pad prioridad 2, Desenmascarar 0.8, profundidad lejos, ancho 1.6 o más.</li></ul>
+<div class="box tip">Las puntas rojas en la corona de una estrella y las barras rojas del medidor de bandas muestran el recorte en tiempo real. Los filamentos rojos entre estrellas indican choques que siguen ahí: mueve las estrellas o presiona <b>Desenredar</b>.</div>
+"""},
+{"title": "Auto-Mezcla, roles y Desenredar", "html": """
+<p><b>AUTO-MEZCLA</b> coloca cada estrella (paneo, altura, profundidad, ancho, prioridad, espacio y tono) según su rol y el estilo elegido.
+Si varias pistas comparten rol (dos guitarras, tres percusiones) se reparten solas a ambos lados.</p>
+<table><tr><th style="width:30%">Estilo</th><th>Carácter</th></tr>
+<tr><td><b>Club / Techno</b></td><td>Bombo y bajo mono y al frente, hats arriba, pads anchos y lejos.</td></tr>
+<tr><td><b>Funk / Disco</b></td><td>Base rítmica apretada, guitarra y teclados en esquinas opuestas, voz en tu cara.</td></tr>
+<tr><td><b>Hip-Hop / Trap</b></td><td>Voz y 808 dominantes y secos, todo lo demás alrededor.</td></tr>
+<tr><td><b>Ambient / Cinemático</b></td><td>Profundo, ancho, mucha sala; prioridades suaves.</td></tr>
+<tr><td><b>Banda en vivo</b></td><td>La imagen desde el público: batería atrás, músicos repartidos como una banda real.</td></tr>
+<tr><td><b>Pop amplio</b></td><td>Coros y sintes anchos, centro muy enfocado.</td></tr>
+<tr><td><b>Inmersivo 360°</b></td><td>Para 3D audífonos / surround con Envolvente 360°: elementos alrededor y encima de ti.</td></tr></table>
+<h3>Palabras clave de rol (inglés / español)</h3>
+<p style="font-size:9.4pt">Bombo: kick, bombo, bd · Caja: snare, clap, caja, rim · Hats: hat, hh, ride, crash, platillo · Percusión: perc, conga, bongo, shaker, tom, güiro, timbal ·
+Bajo: bass, bajo, sub, 808 · Voz principal: vox, vocal, voz, voice, rap · Coros: backing, coro, choir, harmony, adlib · Pad: pad, drone, textura ·
+Teclados: piano, keys, rhodes, teclado, órgano · Guitarra: guit, gtr, guitarra · Cuerdas / metales: string, violin, cuerda, brass, horn, sax, trompeta ·
+FX: fx, riser, noise, impact, atmos · Sinte principal: lead, arp, synth, pluck, stab, acid, 303. Si el nombre no dice nada, elige el <b>Rol</b> a mano.</p>
+<h3>Desenredar</h3>
+<p>Busca pares de estrellas que siguen chocando y aleja a la de menor prioridad (hacia un lado, o más al fondo si es bombo, bajo, caja o voz principal, que se quedan al centro). Presiónalo otra vez para más.</p>
+"""},
+{"title": "Salas, 3D audífonos y surround", "html": """
+<h3>Salas</h3>
+<p>Cabina seca · Estudio · Club · Placa · Sala de conciertos · <b>Cenote</b> (un cenote profundo de Yucatán: oscuro, largo, con reflexiones de piedra) · Catedral · Nebulosa (enorme, aireada, casi infinita).
+La sala es compartida por todas las estrellas: al cambiarla cambia toda la mezcla a la vez.</p>
+<h3>3D audífonos (binaural)</h3>
+<p>Presiona <b>3D audífonos</b> y cada estrella se procesa para audífonos con un modelo de cabeza esférica (diferencias de tiempo y nivel entre oídos,
+sombra de la cabeza, color trasero y de elevación). Ahora las estrellas pueden estar a tus lados y detrás. Funciona en Ableton Live y en cualquier DAW estéreo.
+Apágalo antes de exportar una mezcla para bocinas.</p>
+<h3>Bocinas reales (5.1 · 7.1 · 7.1.4 …)</h3>
+<p>En DAWs con pistas multicanal (Logic Pro, Reaper, Cubase / Nuendo, Studio One y similares) pon la salida de la pista o del plug-in en
+<b>Quad, 5.1, 7.1, 5.1.2, 5.1.4, 7.1.2 o 7.1.4</b>. Constellation detecta el formato, dibuja las bocinas alrededor del oyente y panea cada estrella entre ellas,
+con bocinas de altura para las estrellas elevadas y la sala repartida en todo el arreglo. El LFE queda libre para tu manejo de graves.</p>
+<div class="box warn"><b>Sobre Ableton Live:</b> las pistas de Live son solo estéreo, así que no puede llevar una señal 5.1 / 7.1.4 entre dispositivos. En Live usa <b>3D audífonos</b> para mezclar inmersivo;
+para arreglos reales de bocinas usa un DAW con buses surround (aplican las mismas ideas y estilos).</div>
+<h3>Envolvente 360°</h3>
+<p>En 0 las estrellas forman un escenario frente a ti (como estéreo). Al subirlo, el eje de profundidad se curva alrededor del oyente: las estrellas lejanas pasan a tus lados y luego detrás de ti.
+El oyente cian entra al cielo para que lo veas.</p>
+<img class="shot" style="width:66%;display:block;margin:0 auto" src="{{plugin-surround-top.png}}"><div class="cap">Vista ARRIBA con salida 7.1.4 y Envolvente 360° en 0.75: las cajas doradas son las bocinas.</div>
+"""},
+{"title": "Escenas y Morph", "html": """
+<p>Las escenas viven en la instancia <b>CIELO</b> (en el Master).</p>
+<ol><li>Acomoda las estrellas. Presiona <b>Guardar</b> (se pone rojo) y luego <b>A</b>. La escena guarda posición, ancho, ganancia, espacio y tono de cada estrella.</li>
+<li>Haz otra mezcla (por ejemplo el coro: más ancho, más brillante, voces al frente) → <b>Guardar → B</b>. Hasta cuatro escenas.</li>
+<li>Haz clic en una letra encendida para saltar a ella, o desliza <b>Morph</b> para mezclar suavemente entre las escenas guardadas (A → B → C → D).</li>
+<li>En Live, muestra los parámetros del dispositivo del Master y <b>automatiza Scene Morph</b> en el arreglo: estrofa en 0, coro en 1, y toda la mezcla vuela.</li></ol>
+<div class="box tip">Las escenas se guardan con tu Live Set. Las estrellas se reconocen por un ID interno, así que renombrar o mover pistas no las rompe.</div>
+<h3>Mono y correlación</h3>
+<p>En CIELO, <b>Mono</b> suma el master a mono para revisar que nada desaparezca en celulares o sistemas de club. El punto <b>Corr</b> debe quedarse del lado dorado (derecha); a la izquierda del centro (rojo) hay problemas de fase, casi siempre algo demasiado ancho.</p>
+"""},
+{"title": "La versión web", "html": """
+<p>Prueba CONSTELLATION en cualquier navegador, en computadora o celular, sin instalar nada. Tiene el mismo cielo, Desenmascarar, Auto-Mezcla, Desenredar, salas, 3D audífonos, Envolvente 360°, escenas y morph,
+con una banda funk de demo integrada (bombo, caja y clap, hats, bajo funk, clavinet, pad espacial y un sinte principal).</p>
+<ol><li>Abre la página web y presiona <b>Iniciar la mezcla demo</b> (usa audífonos para 3D audífonos).</li>
+<li>Arrastra las estrellas, prueba estilos de Auto-Mezcla, presiona 3D audífonos y sube la Envolvente 360°.</li>
+<li><b>Suelta tus propios audios</b> (WAV, MP3, AIFF, FLAC…) en cualquier parte de la página o presiona <b>+ Agregar audio</b>: cada archivo se vuelve una estrella en loop, ideal para revisar stems.</li></ol>
+<div class="two"><img class="shot" src="{{web-desk.png}}"><img class="shot" src="{{web-phone.png}}" style="width:60%;justify-self:center"></div>
+<div class="cap">Computadora y celular.</div>
+"""},
+{"title": "Preguntas y soluciones", "html": """
+<table><tr><th style="width:38%">Problema</th><th>Solución</th></tr>
+<tr><td>No veo las estrellas de las otras pistas.</td><td>Usa el mismo formato en todas (todo VST3 o todo AU). Revisa que las pistas estén sonando: las estrellas dormidas (sin procesar audio por 1.5 s) se ven tenues y Desenmascarar las ignora.</td></tr>
+<tr><td>La estrella se llama "Track".</td><td>El DAW no mandó nombre: elige el Rol a mano. En Live, renombra la pista y se actualiza.</td></tr>
+<tr><td>El paneo de Live y Constellation se pelean.</td><td>Deja la perilla de paneo de Live en C; panea con la estrella.</td></tr>
+<tr><td>Demasiada reverb.</td><td>Baja Espacio en la estrella, tráela al frente (profundidad) o elige una sala más seca.</td></tr>
+<tr><td>La mezcla suena delgada con Desenmascarar.</td><td>Baja Desenmascarar en las estrellas de menor prioridad o sepáralas en el espacio.</td></tr>
+<tr><td>CPU.</td><td>Cada estrella es ligera (sin FFT en el hilo de audio). Congela las pistas que no necesites mover.</td></tr>
+<tr><td>¿Latencia?</td><td>Cero. Nada que compensar.</td></tr>
+<tr><td>¿Es gratis?</td><td>Sí: completo, gratis y de código abierto (GPL-3.0). Sin versión de pago ni cuenta.</td></tr>
+</table>
+<h3>Créditos</h3>
+<p>Diseño de <b>Dark Funk Durcal</b> — <i>What is Dark Funk Durcal? Search it on Spotify, YouTube and every audio platform.</i><br>
+Creado en <b>Polaris Sound Lab</b>, Mérida, Yucatán, México · Instagram @polaris.sound.lab · YouTube @PolarisSoundLab<br>
+Código fuente: github.com/drophlex/CONSTELLATION · Hecho con JUCE.</p>
+<p class="donate">♥ Si te gusta, invítame un café — PayPal drophlex@gmail.com</p>
+"""},
+]}
+
+pathlib.Path(__file__).with_name("manual_text.json").write_text(json.dumps({"en": EN, "es": ES}, ensure_ascii=False), encoding="utf-8")
+print("ok")
